@@ -1,174 +1,552 @@
-var WidgetMetadata = {
-    "id": "douban-movie-list-optimized",
-    "title": "豆瓣电影榜单（优化版）",
-    "description": "支持热门榜单、自定义片单抓取，并新增分页功能。",
-    "author": "Inch Studio",
-    "site": "https://github.com/InchStudio/ForwardWidgets ",
-    "version": "1.1.0",
-    "requiredVersion": "0.0.1",
-    "modules": [
+// 豆瓣片单组件
+WidgetMetadata = {
+  id: "douban",
+  title: "豆瓣",
+  modules: [
+    {
+      title: "片单",
+      requiresWebView: false,
+      functionName: "loadCardItems",
+      params: [
         {
-            "title": "热门榜单",
-            "description": "选择豆瓣热门榜单类型并分页查看",
-            "requiresWebView": false,
-            "functionName": "fetchPopularList",
-            "params": [
-                {
-                    "name": "type",
-                    "title": "榜单类型",
-                    "type": "enumeration",
-                    "description": "选择要抓取的热门榜单类型",
-                    "value": "top250",
-                    "options": [
-                        { "title": "Top250", "value": "top250" },
-                        { "title": "正在热映", "value": "nowplaying" },
-                        { "title": "近期上映", "value": "comingsoon" },
-                        { "title": "高分电影", "value": "highscore" }
-                    ]
-                },
-                {
-                    "name": "page",
-                    "title": "页码",
-                    "type": "page",
-                    "description": "选择要查看的页码（每页显示 25 个电影）",
-                    "value": 1
-                }
-            ]
+          name: "url",
+          title: "列表地址",
+          type: "input",
+          description: "豆瓣片单地址",
+          placeholders: [
+            {
+              title: "豆瓣 Top 250",
+              value: "https://m.douban.com/subject_collection/movie_top250 ",
+            },
+            {
+              title: "一周电影口碑榜",
+              value:
+                "https://m.douban.com/subject_collection/movie_weekly_best ",
+            },
+            {
+              title: "华语口碑剧集榜",
+              value:
+                "https://m.douban.com/subject_collection/tv_chinese_best_weekly ",
+            },
+            {
+              title: "全球口碑剧集榜",
+              value:
+                "https://m.douban.com/subject_collection/tv_global_best_weekly ",
+            },
+            {
+              title: "国内综艺口碑榜",
+              value:
+                "https://m.douban.com/subject_collection/show_chinese_best_weekly ",
+            },
+            {
+              title: "全球综艺口碑榜",
+              value:
+                "https://m.douban.com/subject_collection/show_global_best_weekly ",
+            },
+            {
+              title: "第97届奥斯卡",
+              value:
+                "https://m.douban.com/subject_collection/EC7I7ZDRA?type=rank ",
+            },
+          ],
         },
         {
-            "title": "自定义片单",
-            "description": "输入豆瓣片单 ID 或完整 URL，并选择页码抓取更多电影",
-            "requiresWebView": false,
-            "functionName": "fetchCustomList",
-            "params": [
-                {
-                    "name": "listId",
-                    "title": "片单 ID 或 URL",
-                    "type": "input",
-                    "description": "输入片单 ID（如 123456）或完整 URL（如 https://movie.douban.com/list/123456 ）",
-                    "value": "",
-                    "placeholder": "123456 或 https://movie.douban.com/list/123456 "
-                },
-                {
-                    "name": "page",
-                    "title": "页码",
-                    "type": "page",
-                    "description": "选择要抓取的页码（每页显示 15 个电影）",
-                    "value": 1
-                }
-            ]
-        }
-    ],
-    "search": {
-        "title": "搜索电影",
-        "functionName": "searchMovies",
-        "params": [
+          name: "start",
+          title: "开始",
+          type: "count",
+        },
+        {
+          name: "limit",
+          title: "每页数量",
+          type: "constant",
+          value: "20",
+        },
+      ],
+    },
+    {
+      title: "实时剧集榜",
+      requiresWebView: false,
+      functionName: "loadItemsFromApi",
+      params: [
+        {
+          name: "start",
+          title: "开始",
+          type: "count",
+        },
+        {
+          name: "limit",
+          title: "每页数量",
+          type: "constant",
+          value: "20",
+        },
+        {
+          name: "url",
+          title: "列表地址",
+          type: "constant",
+          value:
+            "https://m.douban.com/rexxar/api/v2/subject_collection/tv_real_time_hotest/items ",
+        },
+        {
+          name: "type",
+          title: "类型",
+          type: "constant",
+          value: "tv",
+        },
+      ],
+    },
+    {
+      title: "实时电影榜",
+      requiresWebView: false,
+      functionName: "loadItemsFromApi",
+      params: [
+        {
+          name: "start",
+          title: "开始",
+          type: "count",
+        },
+        {
+          name: "limit",
+          title: "每页数量",
+          type: "constant",
+          value: "20",
+        },
+        {
+          name: "url",
+          title: "列表地址",
+          type: "constant",
+          value:
+            "https://m.douban.com/rexxar/api/v2/subject_collection/movie_real_time_hotest/items ",
+        },
+        {
+          name: "type",
+          title: "类型",
+          type: "constant",
+          value: "movie",
+        },
+      ],
+    },
+    {
+      title: "电影推荐",
+      requiresWebView: false,
+      functionName: "loadRecommendMovies",
+      params: [
+        {
+          name: "category",
+          title: "分类",
+          type: "enumeration",
+          enumOptions: [
             {
-                "name": "query",
-                "title": "关键词",
-                "type": "input",
-                "description": "输入电影名称、导演或演员",
-                "value": "",
-                "placeholder": "肖申克的救赎 / 张艺谋"
-            }
-        ]
-    }
+              title: "全部",
+              value: "all",
+            },
+            {
+              title: "热门电影",
+              value: "热门",
+            },
+            {
+              title: "最新电影",
+              value: "最新",
+            },
+            {
+              title: "豆瓣高分",
+              value: "豆瓣高分",
+            },
+            {
+              title: "冷门佳片",
+              value: "冷门佳片",
+            },
+          ],
+        },
+        {
+          name: "type",
+          title: "类型",
+          type: "enumeration",
+          belongTo: {
+            paramName: "category",
+            value: ["热门", "最新", "豆瓣高分", "冷门佳片"],
+          },
+          enumOptions: [
+            {
+              title: "全部",
+              value: "全部",
+            },
+            {
+              title: "华语",
+              value: "华语",
+            },
+            {
+              title: "欧美",
+              value: "欧美",
+            },
+            {
+              title: "韩国",
+              value: "韩国",
+            },
+            {
+              title: "日本",
+              value: "日本",
+            },
+          ],
+        },
+        {
+          name: "start",
+          title: "开始",
+          type: "count",
+        },
+        {
+          name: "limit",
+          title: "每页数量",
+          type: "constant",
+          value: "20",
+        },
+      ],
+    },
+    {
+      title: "剧集推荐",
+      requiresWebView: false,
+      functionName: "loadRecommendShows",
+      params: [
+        {
+          name: "category",
+          title: "分类",
+          type: "enumeration",
+          enumOptions: [
+            {
+              title: "全部",
+              value: "all",
+            },
+            {
+              title: "热门剧集",
+              value: "tv",
+            },
+            {
+              title: "热门综艺",
+              value: "show",
+            },
+          ],
+        },
+        {
+          name: "type",
+          title: "类型",
+          type: "enumeration",
+          belongTo: {
+            paramName: "category",
+            value: ["tv"],
+          },
+          enumOptions: [
+            {
+              title: "综合",
+              value: "tv",
+            },
+            {
+              title: "国产剧",
+              value: "tv_domestic",
+            },
+            {
+              title: "欧美剧",
+              value: "tv_american",
+            },
+            {
+              title: "日剧",
+              value: "tv_japanese",
+            },
+            {
+              title: "韩剧",
+              value: "tv_korean",
+            },
+            {
+              title: "动画",
+              value: "tv_animation",
+            },
+            {
+              title: "纪录片",
+              value: "tv_documentary",
+            },
+          ],
+        },
+        {
+          name: "type",
+          title: "类型",
+          type: "enumeration",
+          belongTo: {
+            paramName: "category",
+            value: ["show"],
+          },
+          enumOptions: [
+            {
+              title: "综合",
+              value: "show",
+            },
+            {
+              title: "国内",
+              value: "show_domestic",
+            },
+            {
+              title: "国外",
+              value: "show_foreign",
+            },
+          ],
+        },
+        {
+          name: "start",
+          title: "开始",
+          type: "count",
+        },
+        {
+          name: "limit",
+          title: "每页数量",
+          type: "constant",
+          value: "20",
+        },
+      ],
+    },
+  ],
+  version: "1.0.0",
+  requiredVersion: "0.0.1",
+  description: "解析豆瓣片单，获取视频信息",
+  author: "pack1r",
+  site: "https://github.com/pack1r/ForwardWidgets "
 };
 
-// === 限流控制 ===
-let lastRequestTime = 0;
-async function throttleRequest(url, options = {}) {
-    const now = Date.now();
-    const minInterval = 2000; // 每 2 秒最多一次请求
-    if (now - lastRequestTime < minInterval) {
-        await new Promise(resolve => setTimeout(resolve, minInterval));
+// 解析豆瓣片单
+async function loadCardItems(params = {}) {
+  try {
+    console.log("开始解析豆瓣片单...");
+    console.log("参数:", params);
+    // 获取片单 URL
+    const url = params.url;
+    if (!url) {
+      console.error("缺少片单 URL");
+      throw new Error("缺少片单 URL");
     }
-    lastRequestTime = Date.now();
-    return Widget.http.get(url, options);
-}
-
-// === 公共解析函数 ===
-async function fetchMovieList(url) {
-    try {
-        const response = await throttleRequest(url, {
-            headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
-            }
-        });
-
-        const $ = Widget.html.load(response.data);
-        const items = [];
-
-        $(".grid_view li, .doulist-item").each((i, el) => {
-            const title = $(el).find(".title, .title a").text().trim();
-            const link = $(el).find("a").attr("href") || "";
-            const coverUrl = $(el).find("img").attr("src") || "";
-            const rating = $(el).find(".rating_num, .rating").text().trim() || "暂无评分";
-            const desc = $(el).find(".inq, .abstract").text().trim() || "暂无简介";
-
-            if (title && link) {
-                items.push({
-                    "id": link,
-                    "type": "url",
-                    "title": title,
-                    "coverUrl": coverUrl,
-                    "link": link,
-                    "rating": rating,
-                    "description": desc
-                });
-            }
-        });
-
-        return items;
-    } catch (error) {
-        console.error("抓取片单失败:", error);
-        throw new Error(`请求失败: ${error.message}`);
+    // 验证 URL 格式
+    if (url.includes("douban.com/doulist/")) {
+      return loadDefaultList(params);
+    } else if (url.includes("douban.com/subject_collection/")) {
+      return loadSubjectCollection(params);
     }
+  } catch (error) {
+    console.error("解析豆瓣片单失败:", error);
+    throw error;
+  }
 }
 
-// === 热门榜单模块 ===
-async function fetchPopularList(params = {}) {
-    const { type, page } = params;
-    let url = "";
-    switch (type) {
-        case "top250":
-            url = `https://movie.douban.com/top250?start= ${(page - 1) * 25}`;
-            break;
-        case "nowplaying":
-            url = `https://movie.douban.com/cinema/nowplaying/?start= ${(page - 1) * 25}`;
-            break;
-        case "comingsoon":
-            url = `https://movie.douban.com/cinema/comingsoon/?start= ${(page - 1) * 25}`;
-            break;
-        case "highscore":
-            url = `https://movie.douban.com/subject_collection/highscore/items?start= ${(page - 1) * 25}`;
-            break;
-        default:
-            throw new Error("不支持的榜单类型");
+async function loadDefaultList(params = {}) {
+  const url = params.url;
+  // 提取片单 ID
+  const listId = url.match(/doulist\/(\d+)/)?.[1];
+  console.debug("片单 ID:", listId);
+  if (!listId) {
+    console.error("无法获取片单 ID");
+    throw new Error("无法获取片单 ID");
+  }
+
+  const start = params.start || 0;
+  const limit = params.limit || 20;
+
+  // 缓存键名
+  const cacheKey = `douban_default_list_${listId}`;
+  const cached = localStorage.getItem(cacheKey);
+  const now = Date.now();
+  const cacheTTL = 3600000; // 1小时缓存
+
+  // 使用缓存
+  if (cached) {
+    const parsed = JSON.parse(cached);
+    if (now - parsed.timestamp < cacheTTL) {
+      console.log("使用缓存数据");
+      return parsed.items;
+    }
+  }
+
+  const maxPages = 5; // 最多拉取5页
+  let allItems = [];
+
+  for (let i = 0; i < maxPages; i++) {
+    const pageStart = i * limit;
+    const pageUrl = `https://www.douban.com/doulist/ ${listId}/?start=${pageStart}&limit=${limit}`;
+    console.log("请求片单页面:", pageUrl);
+
+    const response = await Widget.http.get(pageUrl, {
+      headers: {
+        Referer: "https://movie.douban.com/explore ",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      },
+    });
+
+    if (!response || !response.data) throw new Error("获取片单数据失败");
+
+    const docId = Widget.dom.parse(response.data);
+    if (docId < 0) throw new Error("解析 HTML 失败");
+
+    const videoElementIds = Widget.dom.select(docId, ".doulist-item .title a");
+    let doubanIds = [];
+    for (const itemId of videoElementIds) {
+      const link = await Widget.dom.attr(itemId, "href");
+      const id = link.match(/subject\/(\d+)/)?.[1];
+      if (id) doubanIds.push({ id: id, type: "douban" });
     }
 
-    return await fetchMovieList(url);
+    allItems = [...allItems, ...doubanIds];
+
+    // 判断是否还有数据（如果当前页返回数量不足 limit）
+    if (doubanIds.length < limit) break;
+  }
+
+  // 缓存结果
+  localStorage.setItem(cacheKey, JSON.stringify({
+    timestamp: now,
+    items: allItems
+  }));
+
+  return allItems;
 }
 
-// === 自定义片单模块（支持分页）===
-async function fetchCustomList(params = {}) {
-    const { listId, page } = params;
-    if (!listId) throw new Error("请输入片单 ID 或 URL");
+async function loadSubjectCollection(params = {}) {
+  const listId = params.url.match(/subject_collection\/(\w+)/)?.[1];
+  if (!listId) throw new Error("无法获取合集 ID");
 
-    const isUrl = listId.startsWith("http");
-    const baseUrl = isUrl ? listId : `https://movie.douban.com/list/ ${listId}`;
-    const url = `${baseUrl}?start=${(page - 1) * 15}`;
+  const start = params.start || 0;
+  const limit = params.limit || 20;
 
-    return await fetchMovieList(url);
+  const cacheKey = `douban_subject_collection_${listId}`;
+  const cached = localStorage.getItem(cacheKey);
+  const now = Date.now();
+  const cacheTTL = 3600000;
+
+  if (cached) {
+    const parsed = JSON.parse(cached);
+    if (now - parsed.timestamp < cacheTTL) {
+      console.log("使用缓存数据");
+      return parsed.items;
+    }
+  }
+
+  const maxPages = 5;
+  let allItems = [];
+
+  for (let i = 0; i < maxPages; i++) {
+    const pageStart = i * limit;
+    let pageUrl = `https://m.douban.com/rexxar/api/v2/subject_collection/ ${listId}/items?start=${pageStart}&count=${limit}&updated_at&items_only=1&type_tag&for_mobile=1`;
+    if (params.type) pageUrl += `&type=${params.type}`;
+
+    console.log("请求合集页面:", pageUrl);
+    const response = await Widget.http.get(pageUrl, {
+      headers: {
+        Referer: `https://m.douban.com/subject_collection/ ${listId}/`,
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      },
+    });
+
+    if (!response || !response.data) throw new Error("获取合集数据失败");
+
+    const items = response.data.subject_collection_items || [];
+    const doubanIds = items.map(item => ({ id: item.id, type: "douban" }));
+    allItems = [...allItems, ...doubanIds];
+
+    if (items.length < limit) break;
+  }
+
+  localStorage.setItem(cacheKey, JSON.stringify({
+    timestamp: now,
+    items: allItems
+  }));
+
+  return allItems;
 }
 
-// === 搜索模块 ===
-async function searchMovies(params = {}) {
-    const { query } = params;
-    if (!query) throw new Error("请输入搜索关键词");
+async function loadItemsFromApi(params = {}) {
+  const url = params.url;
+  const listId = params.url.match(/subject_collection\/(\w+)/)?.[1];
+  if (!listId) throw new Error("无法获取合集 ID");
 
-    const encodedQuery = encodeURIComponent(query);
-    const url = `https://movie.douban.com/subject_search?search_text= ${encodedQuery}&cat=1002`;
+  const maxPages = 5;
+  let allItems = [];
 
-    return await fetchMovieList(url);
+  for (let i = 0; i < maxPages; i++) {
+    const pageUrl = `${url}&start=${i * params.limit || 20}`;
+    console.log("请求 API 页面:", pageUrl);
+    const response = await Widget.http.get(pageUrl, {
+      headers: {
+        Referer: `https://m.douban.com/subject_collection/ ${listId}/`,
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      },
+    });
+
+    if (!response || !response.data) throw new Error("获取 API 数据失败");
+
+    const items = response.data.subject_collection_items || [];
+    const doubanIds = items.map(item => ({ id: item.id, type: "douban" }));
+    allItems = [...allItems, ...doubanIds];
+
+    if (items.length < params.limit || items.length === 0) break;
+  }
+
+  return allItems;
+}
+
+async function loadRecommendMovies(params = {}) {
+  return await loadRecommendItems(params, "movie");
+}
+
+async function loadRecommendShows(params = {}) {
+  return await loadRecommendItems(params, "tv");
+}
+
+async function loadRecommendItems(params = {}, type = "movie") {
+  const start = params.start || 0;
+  const limit = params.limit || 20;
+  const category = params.category || "";
+  const categoryType = params.type || "";
+
+  const cacheKey = `douban_recommend_${type}_${category}_${categoryType}`;
+  const cached = localStorage.getItem(cacheKey);
+  const now = Date.now();
+  const cacheTTL = 3600000;
+
+  if (cached) {
+    const parsed = JSON.parse(cached);
+    if (now - parsed.timestamp < cacheTTL) {
+      console.log("使用缓存数据");
+      return parsed.items;
+    }
+  }
+
+  const maxPages = 5;
+  let allItems = [];
+
+  for (let i = 0; i < maxPages; i++) {
+    const pageStart = i * limit;
+    let url = `https://m.douban.com/rexxar/api/v2/subject/recent_hot/ ${type}?start=${pageStart}&limit=${limit}&category=${category}&type=${categoryType}`;
+    if (category == "all") {
+      url = `https://m.douban.com/rexxar/api/v2/ ${type}/recommend?refresh=0&start=${pageStart}&count=${limit}&selected_categories=%7B%7D&uncollect=false&score_range=0,10&tags=`;
+    }
+
+    console.log("请求推荐页面:", url);
+    const response = await Widget.http.get(url, {
+      headers: {
+        Referer: `https://movie.douban.com/ ${type}`,
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      },
+    });
+
+    if (!response || !response.data) throw new Error("获取推荐数据失败");
+
+    const items = response.data.items || [];
+    const doubanIds = items.filter(item => item.id != null).map(item => ({ id: item.id, type: "douban" }));
+    allItems = [...allItems, ...doubanIds];
+
+    if (items.length < limit || items.length === 0) break;
+  }
+
+  localStorage.setItem(cacheKey, JSON.stringify({
+    timestamp: now,
+    items: allItems
+  }));
+
+  return allItems;
 }
