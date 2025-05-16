@@ -1,0 +1,193 @@
+var WidgetMetadata = {
+    id: "douban-movie-list-optimized",
+    title: "豆瓣电影榜单（优化版）",
+    description: "支持热门榜单、自定义片单抓取，并新增搜索功能与缓存机制。",
+    author: "Inch Studio",
+    site: "https://github.com/InchStudio/ForwardWidgets ",
+    version: "1.1.0",
+    requiredVersion: "0.0.1",
+    modules: [
+        {
+            title: "热门榜单",
+            description: "选择豆瓣热门榜单类型并分页查看",
+            requiresWebView: false,
+            functionName: "fetchPopularList",
+            params: [
+                {
+                    name: "type",
+                    title: "榜单类型",
+                    type: "enumeration",
+                    description: "选择要抓取的热门榜单类型",
+                    value: "top250",
+                    options: [
+                        { title: "Top250", value: "top250" },
+                        { title: "正在热映", value: "nowplaying" },
+                        { title: "近期上映", value: "comingsoon" },
+                        { title: "高分电影", value: "highscore" }
+                    ]
+                },
+                {
+                    name: "page",
+                    title: "页码",
+                    type: "page",
+                    description: "选择要查看的页码（每页显示 25 个电影）",
+                    value: 1
+                }
+            ]
+        },
+        {
+            title: "自定义片单",
+            description: "输入豆瓣片单 ID 或完整 URL，抓取自定义片单内容",
+            requiresWebView: false,
+            functionName: "fetchCustomList",
+            params: [
+                {
+                    name: "listId",
+                    title: "片单 ID 或 URL",
+                    type: "input",
+                    description: "输入片单 ID（如 123456）或完整 URL（如 https://movie.douban.com/list/123456 ）",
+                    value: "",
+                    placeholder: "123456 或 https://movie.douban.com/list/123456 "
+                }
+            ]
+        }
+    ],
+    search: {
+        title: "搜索电影",
+        functionName: "searchMovies",
+        params: [
+            {
+                name: "query",
+                title: "关键词",
+                type: "input",
+                description: "输入电影名称、导演或演员",
+                value: "",
+                placeholder: "肖申克的救赎 / 张艺谋"
+            }
+        ]
+    }
+};
+
+// === 缓存机制 ===
+const cache = {};
+function getCacheKey(type, page) {
+    return `${type}-${page}`;
+}
+
+function setCache(key, data) {
+    cache[key] = {
+        data,
+        expireAt: Date.now() + 5 * 60 * 1000 // 缓存 5 分钟
+    };
+}
+
+function getCache(key) {
+    const entry = cache[key];
+    if (entry && entry.expireAt > Date.now()) {
+        return entry.data;
+    }
+    return null;
+}
+
+// === 限流控制 ===
+let lastRequestTime = 0;
+async function throttleRequest(url, options = {}) {
+    const now = Date.now();
+    const minInterval = 1000; // 每秒最多一次请求
+    if (now - lastRequestTime < minInterval) {
+        await new Promise(resolve => setTimeout(resolve, minInterval));
+    }
+    lastRequestTime = Date.now();
+    return Widget.http.get(url, options);
+}
+
+// === 公共解析函数 ===
+async function fetchMovieList(url) {
+    try {
+        const response = await throttleRequest(url, {
+            headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+            }
+        });
+
+        const $ = Widget.html.load(response.data);
+        const items = [];
+
+        $(".grid_view li, .doulist-item").each((i, el) => {
+            const title = $(el).find(".title, .title a").text().trim();
+            const link = $(el).find("a").attr("href") || "";
+            const coverUrl = $(el).find("img").attr("src") || "";
+            const rating = $(el).find(".rating_num, .rating").text().trim() || "暂无评分";
+            const desc = $(el).find(".inq, .abstract").text().trim() || "暂无简介";
+
+            if (title && link) {
+                items.push({
+                    id: link,
+                    type: "url",
+                    title: title,
+                    coverUrl: coverUrl,
+                    link: link,
+                    rating: rating,
+                    description: desc
+                });
+            }
+        });
+
+        return items;
+    } catch (error) {
+        console.error("抓取片单失败:", error);
+        throw new Error(`请求失败: ${error.message}`);
+    }
+}
+
+// === 热门榜单模块 ===
+async function fetchPopularList(params = {}) {
+    const { type, page } = params;
+    const cacheKey = getCacheKey(type, page);
+    const cached = getCache(cacheKey);
+    if (cached) return cached;
+
+    let url = "";
+    switch (type) {
+        case "top250":
+            url = `https://movie.douban.com/top250?start= ${(page - 1) * 25}`;
+            break;
+        case "nowplaying":
+            url = `https://movie.douban.com/cinema/nowplaying/?start= ${(page - 1) * 25}`;
+            break;
+        case "comingsoon":
+            url = `https://movie.douban.com/cinema/comingsoon/?start= ${(page - 1) * 25}`;
+            break;
+        case "highscore":
+            url = `https://movie.douban.com/subject_collection/highscore/items?start= ${(page - 1) * 25}`;
+            break;
+        default:
+            throw new Error("不支持的榜单类型");
+    }
+
+    const data = await fetchMovieList(url);
+    setCache(cacheKey, data);
+    return data;
+}
+
+// === 自定义片单模块 ===
+async function fetchCustomList(params = {}) {
+    const { listId } = params;
+    if (!listId) throw new Error("请输入片单 ID 或 URL");
+
+    const isUrl = listId.startsWith("http");
+    const url = isUrl ? listId : `https://movie.douban.com/list/ ${listId}`;
+
+    return await fetchMovieList(url);
+}
+
+// === 搜索模块 ===
+async function searchMovies(params = {}) {
+    const { query } = params;
+    if (!query) throw new Error("请输入搜索关键词");
+
+    const encodedQuery = encodeURIComponent(query);
+    const url = `https://movie.douban.com/subject_search?search_text= ${encodedQuery}&cat=1002`;
+
+    return await fetchMovieList(url);
+}
