@@ -1,75 +1,75 @@
 // === WidgetMetadata 定义（纯 JSON）===
 var WidgetMetadata = {
-    id: "douban-movie-list",
-    title: "豆瓣电影榜单",
-    description: "支持抓取豆瓣热门榜单（Top250、热映、高分）和自定义片单，提供搜索功能。",
-    author: "Inch Studio",
-    site: "https://github.com/InchStudio/ForwardWidgets ",
-    version: "1.0.0",
-    requiredVersion: "0.0.1",
-    modules: [
+    "id": "douban-movie-list",
+    "title": "豆瓣电影榜单",
+    "description": "支持抓取豆瓣热门榜单（Top250、热映、高分）和自定义片单，提供搜索功能。",
+    "author": "Inch Studio",
+    "site": "https://github.com/InchStudio/ForwardWidgets ",
+    "version": "1.0.0",
+    "requiredVersion": "0.0.1",
+    "modules": [
         {
-            title: "热门榜单",
-            description: "选择豆瓣热门榜单类型并分页查看",
-            requiresWebView: false,
-            functionName: "fetchPopularList",
-            params: [
+            "title": "热门榜单",
+            "description": "选择豆瓣热门榜单类型并分页查看",
+            "requiresWebView": false,
+            "functionName": "fetchPopularList",
+            "params": [
                 {
-                    name: "type",
-                    title: "榜单类型",
-                    type: "enumeration",
-                    description: "选择要抓取的热门榜单类型",
-                    value: "top250",
-                    options: [
-                        { title: "Top250", value: "top250" },
-                        { title: "正在热映", value: "nowplaying" },
-                        { title: "近期上映", value: "comingsoon" },
-                        { title: "高分电影", value: "highscore" }
+                    "name": "type",
+                    "title": "榜单类型",
+                    "type": "enumeration",
+                    "description": "选择要抓取的热门榜单类型",
+                    "value": "top250",
+                    "options": [
+                        { "title": "Top250", "value": "top250" },
+                        { "title": "正在热映", "value": "nowplaying" },
+                        { "title": "近期上映", "value": "comingsoon" },
+                        { "title": "高分电影", "value": "highscore" }
                     ]
                 },
                 {
-                    name: "page",
-                    title: "页码",
-                    type: "page",
-                    description: "选择要查看的页码（每页显示 25 个电影）",
-                    value: 1
+                    "name": "page",
+                    "title": "页码",
+                    "type": "page",
+                    "description": "选择要查看的页码（每页显示 25 个电影）",
+                    "value": 1
                 }
             ]
         },
         {
-            title: "自定义片单",
-            description: "输入豆瓣片单 ID 或完整 URL，抓取自定义片单内容",
-            requiresWebView: false,
-            functionName: "fetchCustomList",
-            params: [
+            "title": "自定义片单",
+            "description": "输入豆瓣片单 ID 或完整 URL，抓取自定义片单内容",
+            "requiresWebView": false,
+            "functionName": "fetchCustomList",
+            "params": [
                 {
-                    name: "listId",
-                    title: "片单 ID 或 URL",
-                    type: "input",
-                    description: "输入片单 ID（如 123456）或完整 URL（如 https://movie.douban.com/list/123456 ）",
-                    value: "",
-                    placeholder: "123456 或 https://movie.douban.com/list/123456 "
+                    "name": "listId",
+                    "title": "片单 ID 或 URL",
+                    "type": "input",
+                    "description": "输入片单 ID（如 123456）或完整 URL（如 https://movie.douban.com/list/123456 ）",
+                    "value": "",
+                    "placeholder": "123456 或 https://movie.douban.com/list/123456 "
                 }
             ]
         }
     ],
-    search: {
-        title: "搜索电影",
-        functionName: "searchMovies",
-        params: [
+    "search": {
+        "title": "搜索电影",
+        "functionName": "searchMovies",
+        "params": [
             {
-                name: "query",
-                title: "关键词",
-                type: "input",
-                description: "输入电影名称、导演或演员",
-                value: "",
-                placeholder: "肖申克的救赎 / 张艺谋"
+                "name": "query",
+                "title": "关键词",
+                "type": "input",
+                "description": "输入电影名称、导演或演员",
+                "value": "",
+                "placeholder": "肖申克的救赎 / 张艺谋"
             }
         ]
     }
 };
 
-// === 独立处理函数定义 ===
+// === 独立处理函数定义（必须与 JSON 分离）===
 
 // 公共解析函数
 async function fetchMovieList(url) {
@@ -92,13 +92,13 @@ async function fetchMovieList(url) {
 
             if (title && link) {
                 items.push({
-                    id: link,
-                    type: "url",
-                    title: title,
-                    coverUrl: coverUrl,
-                    link: link,
-                    rating: rating,
-                    description: desc
+                    "id": link,
+                    "type": "url",
+                    "title": title,
+                    "coverUrl": coverUrl,
+                    "link": link,
+                    "rating": rating,
+                    "description": desc
                 });
             }
         });
