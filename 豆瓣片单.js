@@ -1,10 +1,11 @@
+// === WidgetMetadata 定义（纯 JSON）===
 var WidgetMetadata = {
-    id: "douban-movie-list-optimized",
-    title: "豆瓣电影榜单（优化版）",
-    description: "支持热门榜单、自定义片单抓取，并新增搜索功能与缓存机制。",
+    id: "douban-movie-list",
+    title: "豆瓣电影榜单",
+    description: "支持抓取豆瓣热门榜单（Top250、热映、高分）和自定义片单，提供搜索功能。",
     author: "Inch Studio",
     site: "https://github.com/InchStudio/ForwardWidgets ",
-    version: "1.1.0",
+    version: "1.0.0",
     requiredVersion: "0.0.1",
     modules: [
         {
@@ -68,43 +69,12 @@ var WidgetMetadata = {
     }
 };
 
-// === 缓存机制 ===
-const cache = {};
-function getCacheKey(type, page) {
-    return `${type}-${page}`;
-}
+// === 独立处理函数定义 ===
 
-function setCache(key, data) {
-    cache[key] = {
-        data,
-        expireAt: Date.now() + 5 * 60 * 1000 // 缓存 5 分钟
-    };
-}
-
-function getCache(key) {
-    const entry = cache[key];
-    if (entry && entry.expireAt > Date.now()) {
-        return entry.data;
-    }
-    return null;
-}
-
-// === 限流控制 ===
-let lastRequestTime = 0;
-async function throttleRequest(url, options = {}) {
-    const now = Date.now();
-    const minInterval = 1000; // 每秒最多一次请求
-    if (now - lastRequestTime < minInterval) {
-        await new Promise(resolve => setTimeout(resolve, minInterval));
-    }
-    lastRequestTime = Date.now();
-    return Widget.http.get(url, options);
-}
-
-// === 公共解析函数 ===
+// 公共解析函数
 async function fetchMovieList(url) {
     try {
-        const response = await throttleRequest(url, {
+        const response = await Widget.http.get(url, {
             headers: {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
             }
@@ -140,13 +110,9 @@ async function fetchMovieList(url) {
     }
 }
 
-// === 热门榜单模块 ===
+// 热门榜单模块
 async function fetchPopularList(params = {}) {
     const { type, page } = params;
-    const cacheKey = getCacheKey(type, page);
-    const cached = getCache(cacheKey);
-    if (cached) return cached;
-
     let url = "";
     switch (type) {
         case "top250":
@@ -165,12 +131,10 @@ async function fetchPopularList(params = {}) {
             throw new Error("不支持的榜单类型");
     }
 
-    const data = await fetchMovieList(url);
-    setCache(cacheKey, data);
-    return data;
+    return await fetchMovieList(url);
 }
 
-// === 自定义片单模块 ===
+// 自定义片单模块
 async function fetchCustomList(params = {}) {
     const { listId } = params;
     if (!listId) throw new Error("请输入片单 ID 或 URL");
@@ -181,7 +145,7 @@ async function fetchCustomList(params = {}) {
     return await fetchMovieList(url);
 }
 
-// === 搜索模块 ===
+// 搜索模块
 async function searchMovies(params = {}) {
     const { query } = params;
     if (!query) throw new Error("请输入搜索关键词");
