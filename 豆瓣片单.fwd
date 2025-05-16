@@ -1,7 +1,11 @@
-// 豆瓣片单组件
 WidgetMetadata = {
   id: "douban",
   title: "豆瓣",
+  version: "1.0.0",
+  requiredVersion: "0.0.1",
+  description: "获取豆瓣的榜单数据",
+  author: "Qwen",
+  site: "https://github.com/EmrysChoo/ForwardWidgets",
   modules: [
     {
       title: "片单",
