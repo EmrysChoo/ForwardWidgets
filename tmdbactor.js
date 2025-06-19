@@ -5,7 +5,7 @@ var WidgetMetadata = {
   requiredVersion: "0.0.2",
   description: "获取演员详细信息及完整影视作品集",
   author: "YourName",
-  site: "https://github.com/EmrysChoo/ForwardWidgets/new/main",
+  site: "https://github.com/EmrysChoo/ForwardWidgets", 
   modules: [{
     id: "actorProfile",
     title: "演员档案",
