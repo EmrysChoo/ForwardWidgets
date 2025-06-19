@@ -1,0 +1,16 @@
+
+  "title": "",
+  "description": "tmdb演员作品",
+  "icon": "https://assets.vvebo.vip/scripts/icon.png",
+  "widgets": [
+    {
+      "id": "forward.tmdbactor",
+      "title": "TMDB",
+      "description": "获取 TMDB 的演员作品",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.0",
+      "author": "Evan",  
+      "url": "https://raw.githubusercontent.com/EmrysChoo/ForwardWidgets/refs/heads/main/tmdbactor.js"
+    }
+  ]
+}
