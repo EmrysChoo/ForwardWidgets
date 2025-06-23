@@ -201,11 +201,11 @@ async function fetchCredits(personId, language) {
       throw new Error("获取作品数据失败");
     }
 
-    // 统一字段名并处理电视剧特殊字段
+    // ✅ 统一字段名并处理电视剧特殊字段
     const cast = response.cast?.map(item => ({
       ...item,
       mediaType: item.media_type,
-      releaseDate: item.release_date || item.first_air_date // ✅ 优先使用 first_air_date
+      releaseDate: item.release_date || item.first_air_date
     })) || [];
     
     const crew = response.crew?.map(item => ({
@@ -251,10 +251,10 @@ async function getAllWorks(params = {}) {
     
     const { cast, crew } = await fetchCredits(personId, language);
     
-    // 合并数据并使用组合键去重
+    // ✅ 使用组合键去重，避免电视剧被电影覆盖
     const allWorksMap = {};
-    [...cast, ...crew].forEach((movie, index) => {
-      const uniqueKey = `${movie.id}-${movie.mediaType}`; // ✅ 使用组合键避免冲突
+    [...cast, ...crew].forEach(movie => {
+      const uniqueKey = `${movie.id}-${movie.mediaType}`;
       if (!allWorksMap[uniqueKey]) {
         allWorksMap[uniqueKey] = {
           ...movie,
@@ -264,10 +264,10 @@ async function getAllWorks(params = {}) {
       }
     });
     
-    // 按类型筛选
+    // ✅ 按类型筛选
     const filtered = filterByType(Object.values(allWorksMap), type);
     
-    // 按排序方式处理
+    // ✅ 按排序方式处理
     const sorted = applySorting(filtered, sort_by);
     
     return sorted.map(movie => ({
@@ -295,10 +295,10 @@ async function getActorWorks(params = {}) {
     
     const { cast } = await fetchCredits(personId, language);
     
-    // 按类型筛选
+    // ✅ 按类型筛选
     const filtered = filterByType(cast, type);
     
-    // 按排序方式处理
+    // ✅ 按排序方式处理
     const sorted = applySorting(filtered, sort_by);
     
     return sorted.map(movie => ({
@@ -326,15 +326,15 @@ async function getDirectorWorks(params = {}) {
     
     const { crew } = await fetchCredits(personId, language);
     
-    // 筛选导演作品（模糊匹配）
+    // ✅ 模糊匹配导演头衔
     const directorWorks = crew.filter(item => 
       item.job?.toLowerCase().includes("director")
     );
     
-    // 按类型筛选
+    // ✅ 按类型筛选
     const filtered = filterByType(directorWorks, type);
     
-    // 按排序方式处理
+    // ✅ 按排序方式处理
     const sorted = applySorting(filtered, sort_by);
     
     return sorted.map(movie => ({
@@ -362,16 +362,16 @@ async function getOtherWorks(params = {}) {
     
     const { crew } = await fetchCredits(personId, language);
     
-    // 排除导演和演员相关的作品
+    // ✅ 排除导演和演员相关的作品
     const otherWorks = crew.filter(item => {
       const job = item.job?.toLowerCase();
       return !job.includes("director") && !job.includes("actor");
     });
     
-    // 按类型筛选
+    // ✅ 按类型筛选
     const filtered = filterByType(otherWorks, type);
     
-    // 按排序方式处理
+    // ✅ 按排序方式处理
     const sorted = applySorting(filtered, sort_by);
     
     return sorted.map(movie => ({
