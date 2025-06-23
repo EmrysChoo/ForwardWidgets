@@ -12,7 +12,9 @@ var WidgetMetadata = {
       id: "allWorks",
       title: "全部作品",
       functionName: "getAllWorks",
-      cacheDuration: 172800,
+      requiresWebView: false,
+      sectionMode: false,
+      cacheDuration: 3600,
       params: [
         {
           name: "personId",
@@ -31,6 +33,10 @@ var WidgetMetadata = {
           name: "type",
           title: "类型",
           type: "enumeration",
+          belongTo: {
+            paramName: "personId",
+            value: ["500", "6194"]
+          },
           enumOptions: [
             { title: "全部", value: "all" },
             { title: "电影", value: "movie" },
@@ -42,6 +48,10 @@ var WidgetMetadata = {
           name: "sort_by",
           title: "排序方式",
           type: "enumeration",
+          belongTo: {
+            paramName: "type",
+            value: ["all", "movie", "tv"]
+          },
           enumOptions: [
             { title: "热门降序", value: "popularity.desc" },
             { title: "评分降序", value: "vote_average.desc" },
@@ -55,14 +65,16 @@ var WidgetMetadata = {
       id: "actorWorks",
       title: "演员作品",
       functionName: "getActorWorks",
-      cacheDuration: 172800,
+      requiresWebView: false,
+      sectionMode: false,
+      cacheDuration: 3600,
       params: [
         {
           name: "personId",
           title: "个人ID",
           type: "input",
           description: "在 TMDB 网站获取的数字 ID",
-          value: "500", // 示例：Tom Cruise
+          value: "500",
           placeholders: [
             { title: "示例：Leonardo DiCaprio", value: "6194" }
           ]
@@ -77,6 +89,10 @@ var WidgetMetadata = {
           name: "type",
           title: "类型",
           type: "enumeration",
+          belongTo: {
+            paramName: "personId",
+            value: ["500", "6194"]
+          },
           enumOptions: [
             { title: "全部", value: "all" },
             { title: "电影", value: "movie" },
@@ -88,6 +104,10 @@ var WidgetMetadata = {
           name: "sort_by",
           title: "排序方式",
           type: "enumeration",
+          belongTo: {
+            paramName: "type",
+            value: ["all", "movie", "tv"]
+          },
           enumOptions: [
             { title: "热门降序", value: "popularity.desc" },
             { title: "评分降序", value: "vote_average.desc" },
@@ -101,14 +121,16 @@ var WidgetMetadata = {
       id: "directorWorks",
       title: "导演作品",
       functionName: "getDirectorWorks",
-      cacheDuration: 172800,
+      requiresWebView: false,
+      sectionMode: false,
+      cacheDuration: 3600,
       params: [
         {
           name: "personId",
           title: "个人ID",
           type: "input",
           description: "在 TMDB 网站获取的数字 ID",
-          value: "500", // 示例：Tom Cruise
+          value: "500",
           placeholders: [
             { title: "示例：Christopher Nolan", value: "525" }
           ]
@@ -123,6 +145,10 @@ var WidgetMetadata = {
           name: "type",
           title: "类型",
           type: "enumeration",
+          belongTo: {
+            paramName: "personId",
+            value: ["500", "525"]
+          },
           enumOptions: [
             { title: "全部", value: "all" },
             { title: "电影", value: "movie" },
@@ -134,6 +160,10 @@ var WidgetMetadata = {
           name: "sort_by",
           title: "排序方式",
           type: "enumeration",
+          belongTo: {
+            paramName: "type",
+            value: ["all", "movie", "tv"]
+          },
           enumOptions: [
             { title: "热门降序", value: "popularity.desc" },
             { title: "评分降序", value: "vote_average.desc" },
@@ -147,7 +177,9 @@ var WidgetMetadata = {
       id: "otherWorks",
       title: "其他作品",
       functionName: "getOtherWorks",
-      cacheDuration: 172800,
+      requiresWebView: false,
+      sectionMode: false,
+      cacheDuration: 3600,
       params: [
         {
           name: "personId",
@@ -166,6 +198,10 @@ var WidgetMetadata = {
           name: "type",
           title: "类型",
           type: "enumeration",
+          belongTo: {
+            paramName: "personId",
+            value: ["500"]
+          },
           enumOptions: [
             { title: "全部", value: "all" },
             { title: "电影", value: "movie" },
@@ -177,6 +213,10 @@ var WidgetMetadata = {
           name: "sort_by",
           title: "排序方式",
           type: "enumeration",
+          belongTo: {
+            paramName: "type",
+            value: ["all", "movie", "tv"]
+          },
           enumOptions: [
             { title: "热门降序", value: "popularity.desc" },
             { title: "评分降序", value: "vote_average.desc" },
@@ -201,7 +241,7 @@ async function fetchCredits(personId, language) {
       throw new Error("获取作品数据失败");
     }
 
-    // ✅ 统一字段名并处理电视剧特殊字段
+    // 统一字段名并处理电视剧特殊字段
     const cast = response.cast?.map(item => ({
       ...item,
       mediaType: item.media_type,
@@ -251,33 +291,31 @@ async function getAllWorks(params = {}) {
     
     const { cast, crew } = await fetchCredits(personId, language);
     
-    // ✅ 使用组合键去重，避免电视剧被电影覆盖
+    // 合并数据并使用组合键去重
     const allWorksMap = {};
     [...cast, ...crew].forEach(movie => {
       const uniqueKey = `${movie.id}-${movie.mediaType}`;
       if (!allWorksMap[uniqueKey]) {
         allWorksMap[uniqueKey] = {
           ...movie,
-          title: movie.title || movie.name,
-          mediaType: movie.media_type === "tv" ? "tv" : "movie"
+          title: movie.title || movie.name
         };
       }
     });
     
-    // ✅ 按类型筛选
+    // 按类型筛选
     const filtered = filterByType(Object.values(allWorksMap), type);
     
-    // ✅ 按排序方式处理
+    // 按排序方式处理
     const sorted = applySorting(filtered, sort_by);
     
     return sorted.map(movie => ({
       id: movie.id,
       type: "tmdb",
       title: movie.title || movie.name,
+      coverUrl: movie.poster_path, // ✅ 符合规范要求的 coverUrl 字段
       description: movie.overview,
       releaseDate: movie.releaseDate,
-      posterPath: movie.poster_path,
-      backdropPath: movie.backdrop_path,
       rating: movie.vote_average,
       mediaType: movie.mediaType
     }));
@@ -295,20 +333,19 @@ async function getActorWorks(params = {}) {
     
     const { cast } = await fetchCredits(personId, language);
     
-    // ✅ 按类型筛选
+    // 按类型筛选
     const filtered = filterByType(cast, type);
     
-    // ✅ 按排序方式处理
+    // 指定类型为 tmdb
     const sorted = applySorting(filtered, sort_by);
     
     return sorted.map(movie => ({
       id: movie.id,
       type: "tmdb",
       title: movie.title || movie.name,
+      coverUrl: movie.poster_path, // ✅ 符合规范要求的 coverUrl 字段
       description: movie.overview,
       releaseDate: movie.releaseDate,
-      posterPath: movie.poster_path,
-      backdropPath: movie.backdrop_path,
       rating: movie.vote_average,
       mediaType: movie.mediaType
     }));
@@ -326,25 +363,24 @@ async function getDirectorWorks(params = {}) {
     
     const { crew } = await fetchCredits(personId, language);
     
-    // ✅ 模糊匹配导演头衔
+    // 筛选导演作品（模糊匹配）
     const directorWorks = crew.filter(item => 
       item.job?.toLowerCase().includes("director")
     );
     
-    // ✅ 按类型筛选
+    // 按类型筛选
     const filtered = filterByType(directorWorks, type);
     
-    // ✅ 按排序方式处理
+    // 按排序方式处理
     const sorted = applySorting(filtered, sort_by);
     
     return sorted.map(movie => ({
       id: movie.id,
       type: "tmdb",
       title: movie.title || movie.name,
+      coverUrl: movie.poster_path, // ✅ 符合规范要求的 coverUrl 字段
       description: movie.overview,
       releaseDate: movie.releaseDate,
-      posterPath: movie.poster_path,
-      backdropPath: movie.backdrop_path,
       rating: movie.vote_average,
       mediaType: movie.mediaType
     }));
@@ -362,26 +398,25 @@ async function getOtherWorks(params = {}) {
     
     const { crew } = await fetchCredits(personId, language);
     
-    // ✅ 排除导演和演员相关的作品
+    // 排除导演和演员相关的作品
     const otherWorks = crew.filter(item => {
       const job = item.job?.toLowerCase();
       return !job.includes("director") && !job.includes("actor");
     });
     
-    // ✅ 按类型筛选
+    // 按类型筛选
     const filtered = filterByType(otherWorks, type);
     
-    // ✅ 按排序方式处理
+    // 指定类型为 tmdb
     const sorted = applySorting(filtered, sort_by);
     
     return sorted.map(movie => ({
       id: movie.id,
       type: "tmdb",
       title: movie.title || movie.name,
+      coverUrl: movie.poster_path, // ✅ 符合规范要求的 coverUrl 字段
       description: movie.overview,
       releaseDate: movie.releaseDate,
-      posterPath: movie.poster_path,
-      backdropPath: movie.backdrop_path,
       rating: movie.vote_average,
       mediaType: movie.mediaType
     }));
