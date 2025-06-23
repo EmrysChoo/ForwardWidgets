@@ -1,0 +1,16 @@
+{
+  "title": "TMDB个人作品集",
+  "description": "获取 TMDB 个人相关作品数据",
+  "icon": "https://assets.vvebo.vip/scripts/icon.png",
+  "widgets": [
+    {
+      "id": "TMDB person Movie",
+      "title": "TMDB个人作品集",
+      "description": "获取 TMDB 个人相关作品数据",
+      "requiredVersion": "0.0.1",
+      "version": "1.0.0",
+      "author": "Evan",
+      "url": "https://raw.githubusercontent.com/EmrysChoo/ForwardWidgets/refs/heads/main/person_movie.js"
+    }
+  ]
+}
