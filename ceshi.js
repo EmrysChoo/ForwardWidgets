@@ -21,21 +21,21 @@ var WidgetMetadata = {
           description: "在 TMDB 网站获取的数字 ID",
           placeholders: [
             { title: "周星驰", value: "57607" },
-            { title: "成龙",   value: "18897" },
+            { title: "成龙", value: "18897" },
             { title: "张艺谋", value: "607" },
             { title: "冯小刚", value: "1287732" },
-            { title: "沈腾",   value: "1519026" },
-            { title: "黄渤",   value: "128026" },
-            { title: "王倦",   value: "2467977" },
-            { title: "孔笙",   value: "1494556" },
-            { title: "孙俪",   value: "52898" },
+            { title: "沈腾", value: "1519026" },
+            { title: "黄渤", value: "128026" },
+            { title: "王倦", value: "2467977" },
+            { title: "孔笙", value: "1494556" },
+            { title: "孙俪", value: "52898" },
             { title: "赵丽颖", value: "1260868" },
-            { title: "秦昊",   value: "1016315" },
-            { title: "宁浩",   value: "17295" },
-            { title: "徐峥",   value: "118711" },
+            { title: "秦昊", value: "1016315" },
+            { title: "宁浩", value: "17295" },
+            { title: "徐峥", value: "118711" },
             { title: "王宝强", value: "71051" },
-            { title: "姜文",   value: "77301" },
-            { title: "胡歌",   value: "1106514" },
+            { title: "姜文", value: "77301" },
+            { title: "胡歌", value: "1106514" },
             { title: "张若昀", value: "1675905" }
           ]
         },
@@ -64,14 +64,32 @@ var WidgetMetadata = {
         }
       ]
     },
-    { id: "actorWorks",   title: "演员作品", functionName: "getActorWorks",   cacheDuration: 172800, params: [] },
-    { id: "directorWorks",title: "导演作品", functionName: "getDirectorWorks",cacheDuration: 172800, params: [] },
-    { id: "otherWorks",   title: "其他作品", functionName: "getOtherWorks",   cacheDuration: 172800, params: [] }
+    {
+      id: "actorWorks",
+      title: "演员作品",
+      functionName: "getActorWorks",
+      cacheDuration: 172800,
+      params: []
+    },
+    {
+      id: "directorWorks",
+      title: "导演作品",
+      functionName: "getDirectorWorks",
+      cacheDuration: 172800,
+      params: []
+    },
+    {
+      id: "otherWorks",
+      title: "其他作品",
+      functionName: "getOtherWorks",
+      cacheDuration: 172800,
+      params: []
+    }
   ]
 };
 
 // 复用 allWorks 参数到其他模块
-["actorWorks","directorWorks","otherWorks"].forEach(id => {
+["actorWorks", "directorWorks", "otherWorks"].forEach(id => {
   var module = WidgetMetadata.modules.find(m => m.id === id);
   module.params = JSON.parse(JSON.stringify(WidgetMetadata.modules[0].params));
 });
@@ -113,8 +131,7 @@ function applySorting(items, sortBy) {
       break;
     case "release_date.desc":
       sorted.sort(function(a, b) {
-        return new Date(b.release_date || b.first_air_date) -
-               new Date(a.release_date || a.first_air_date);
+        return new Date(b.release_date || b.first_air_date) - new Date(a.release_date || a.first_air_date);
       });
       break;
     // popularity.desc 默认顺序已由 TMDB 返回
