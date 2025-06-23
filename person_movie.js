@@ -1,14 +1,13 @@
 var WidgetMetadata = {
-  id: "forward.tmdb.person.credits",
-  title: "个人作品集",
-  version: "1.0.2",
+  id: "TMDB person Movie",
+  title: "TMDB个人作品集",
+  version: "1.0.0",
   requiredVersion: "0.0.1",
-  description: "获取 TMDB 个人相关作品数据（全部/演员/导演/其他）",
-  author: "Forward",
-  site: "https://github.com/InchStudio/ForwardWidgets", 
-  cacheDuration: 172800, // 2天缓存
+  description: "获取 TMDB 个人相关作品数据",
+  author: "Evan", 
+  site: "https://github.com/EmrysChoo/ForwardWidgets", 
+  cacheDuration: 172800, 
   modules: [
-    // ✅ 模块顺序调整为：全部作品 → 演员作品 → 导演作品 → 其他作品
     {
       id: "allWorks",
       title: "全部作品",
@@ -252,14 +251,14 @@ async function getAllWorks(params = {}) {
     
     const { cast, crew } = await fetchCredits(personId, language);
     
-    // 合并数据并去重
+    // 合并数据并使用组合键去重
     const allWorksMap = {};
-    [...cast, ...crew].forEach(movie => {
-      if (!allWorksMap[movie.id]) {
-        allWorksMap[movie.id] = {
+    [...cast, ...crew].forEach((movie, index) => {
+      const uniqueKey = `${movie.id}-${movie.mediaType}`; // ✅ 使用组合键去重
+      if (!allWorksMap[uniqueKey]) {
+        allWorksMap[uniqueKey] = {
           ...movie,
           title: movie.title || movie.name,
-          releaseDate: movie.release_date || movie.first_air_date,
           mediaType: movie.media_type === "tv" ? "tv" : "movie"
         };
       }
@@ -327,7 +326,7 @@ async function getDirectorWorks(params = {}) {
     
     const { crew } = await fetchCredits(personId, language);
     
-    // 筛选导演作品
+    // 筛选导演作品（模糊匹配）
     const directorWorks = crew.filter(item => 
       item.job?.toLowerCase().includes("director")
     );
