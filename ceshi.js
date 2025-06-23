@@ -1,8 +1,7 @@
-
 var WidgetMetadata = {
   id: "TMDB.person.Movie",
   title: "TMDB个人作品集",
-  version: "1.1.1",
+  version: "1.1.2",
   requiredVersion: "0.0.1",
   description: "获取 TMDB 个人相关作品数据（Forward 5折优惠码 LUCKY.5)",
   author: "Evan",
@@ -15,25 +14,29 @@ var WidgetMetadata = {
       functionName: "getAllWorks",
       cacheDuration: 172800,
       params: [
-        { name: "personId"， title: "个人ID"， type: "input"， description: "在 TMDB 网站获取的数字 ID", 
+        {
+          name: "personId",
+          title: "个人ID",
+          type: "input",
+          description: "在 TMDB 网站获取的数字 ID",
           placeholders: [
-            { title: "周星驰"， value: "57607" },
-            { title: "成龙"， value: "18897" },
-            { title: "张艺谋"， value: "607" }
-            { title: "冯小刚"， value: "1287732" }
-            { title: "沈腾"， value: "1519026" },
-            { title: "黄渤"， value: "128026" }
-            { title: "王倦"， value: "2467977" }
-            { title: "孔笙"， value: "1494556" }
-            { title: "孙俪"， value: "52898" }
-            { title: "赵丽颖"， value: "1260868" }
-            { title: "秦昊"， value: "1016315" }
-            { title: "宁浩"， value: "17295" }
-            { title: "徐峥"， value: "118711" }
-            { title: "王宝强"， value: "71051" }
-            { title: "姜文"， value: "77301" }
-            { title: "胡歌"， value: "1106514" }
-            { title: "张若昀"， value: "1675905" }
+            { title: "周星驰", value: "57607" },
+            { title: "成龙",   value: "18897" },
+            { title: "张艺谋", value: "607" },
+            { title: "冯小刚", value: "1287732" },
+            { title: "沈腾",   value: "1519026" },
+            { title: "黄渤",   value: "128026" },
+            { title: "王倦",   value: "2467977" },
+            { title: "孔笙",   value: "1494556" },
+            { title: "孙俪",   value: "52898" },
+            { title: "赵丽颖", value: "1260868" },
+            { title: "秦昊",   value: "1016315" },
+            { title: "宁浩",   value: "17295" },
+            { title: "徐峥",   value: "118711" },
+            { title: "王宝强", value: "71051" },
+            { title: "姜文",   value: "77301" },
+            { title: "胡歌",   value: "1106514" },
+            { title: "张若昀", value: "1675905" }
           ]
         },
         { name: "language", title: "语言", type: "language", value: "zh-CN" },
@@ -61,30 +64,13 @@ var WidgetMetadata = {
         }
       ]
     },
-    {
-      id: "actorWorks",
-      title: "演员作品",
-      functionName: "getActorWorks",
-      cacheDuration: 172800,
-      params: []
-    },
-    {
-      id: "directorWorks",
-      title: "导演作品",
-      functionName: "getDirectorWorks",
-      cacheDuration: 172800,
-      params: []
-    },
-    {
-      id: "otherWorks",
-      title: "其他作品",
-      functionName: "getOtherWorks",
-      cacheDuration: 172800,
-      params: []
-    }
+    { id: "actorWorks",   title: "演员作品", functionName: "getActorWorks",   cacheDuration: 172800, params: [] },
+    { id: "directorWorks",title: "导演作品", functionName: "getDirectorWorks",cacheDuration: 172800, params: [] },
+    { id: "otherWorks",   title: "其他作品", functionName: "getOtherWorks",   cacheDuration: 172800, params: [] }
   ]
 };
-// 复用 allWorks 参数
+
+// 复用 allWorks 参数到其他模块
 ["actorWorks","directorWorks","otherWorks"].forEach(id => {
   var module = WidgetMetadata.modules.find(m => m.id === id);
   module.params = JSON.parse(JSON.stringify(WidgetMetadata.modules[0].params));
@@ -97,13 +83,14 @@ async function fetchCredits(personId, language) {
   if (!response || (!response.cast && !response.crew)) {
     throw new Error("获取作品数据失败");
   }
+
   var normalize = function(item) {
-    return {
-      ...item,
+    return Object.assign({}, item, {
       mediaType: item.media_type,
       releaseDate: item.release_date || item.first_air_date
-    };
+    });
   };
+
   return {
     cast: (response.cast || []).map(normalize),
     crew: (response.crew || []).map(normalize)
@@ -112,9 +99,7 @@ async function fetchCredits(personId, language) {
 
 // 过滤函数：按 mediaType 筛选
 function filterByType(items, targetType) {
-  return targetType === "all"
-    ? items
-    : items.filter(item => item.mediaType === targetType);
+  return targetType === "all" ? items : items.filter(item => item.mediaType === targetType);
 }
 
 // 排序函数：根据 sort_by 参数排序
@@ -122,12 +107,17 @@ function applySorting(items, sortBy) {
   var sorted = items.slice();
   switch (sortBy) {
     case "vote_average.desc":
-      sorted.sort(function(a, b) { return (b.vote_average || 0) - (a.vote_average || 0); });
+      sorted.sort(function(a, b) {
+        return (b.vote_average || 0) - (a.vote_average || 0);
+      });
       break;
     case "release_date.desc":
-      sorted.sort(function(a, b) { return new Date(b.release_date || b.first_air_date) - new Date(a.release_date || a.first_air_date); });
+      sorted.sort(function(a, b) {
+        return new Date(b.release_date || b.first_air_date) -
+               new Date(a.release_date || a.first_air_date);
+      });
       break;
-    // 默认 popularity.desc 使用 TMDB 返回顺序
+    // popularity.desc 默认顺序已由 TMDB 返回
   }
   return sorted;
 }
@@ -148,7 +138,7 @@ function formatResults(items) {
       type: "tmdb",
       title: movie.title || movie.name,
       description: movie.overview,
-      releaseDate: movie.release_date || movie.first_air_date,
+      releaseDate: movie.releaseDate,
       posterPath: movie.poster_path,
       backdropPath: movie.backdrop_path,
       rating: movie.vote_average,
@@ -157,7 +147,7 @@ function formatResults(items) {
   });
 }
 
-// 获取全部作品
+// 各模块函数
 async function getAllWorks(params) {
   var p = params || {};
   var credits = await fetchCredits(p.personId, p.language);
@@ -166,8 +156,6 @@ async function getAllWorks(params) {
   list = applySorting(list, p.sort_by);
   return formatResults(list);
 }
-
-// 获取演员作品
 async function getActorWorks(params) {
   var p = params || {};
   var credits = await fetchCredits(p.personId, p.language);
@@ -176,8 +164,6 @@ async function getActorWorks(params) {
   list = applySorting(list, p.sort_by);
   return formatResults(list);
 }
-
-// 获取导演作品
 async function getDirectorWorks(params) {
   var p = params || {};
   var credits = await fetchCredits(p.personId, p.language);
@@ -188,8 +174,6 @@ async function getDirectorWorks(params) {
   list = applySorting(list, p.sort_by);
   return formatResults(list);
 }
-
-// 获取其他作品（排除演员和导演）
 async function getOtherWorks(params) {
   var p = params || {};
   var credits = await fetchCredits(p.personId, p.language);
