@@ -1,7 +1,7 @@
 var WidgetMetadata = {
   id: "forward.tmdb.person.credits",
   title: "个人作品集",
-  version: "1.0.0",
+  version: "1.0.1",
   requiredVersion: "0.0.1",
   description: "获取 TMDB 个人相关作品数据（导演/演员/其他/全部）",
   author: "Forward",
@@ -39,7 +39,18 @@ var WidgetMetadata = {
             { title: "电影", value: "movie" },
             { title: "电视剧", value: "tv" }
           ],
-          value: "all" // 默认显示全部
+          value: "all"
+        },
+        {
+          name: "sort_by",
+          title: "排序方式",
+          type: "enumeration",
+          enumOptions: [
+            { title: "热门降序", value: "popularity.desc" },
+            { title: "评分降序", value: "vote_average.desc" },
+            { title: "发行日期降序", value: "release_date.desc" }
+          ],
+          value: "popularity.desc" // 默认按热门排序
         }
       ]
     },
@@ -75,6 +86,17 @@ var WidgetMetadata = {
             { title: "电视剧", value: "tv" }
           ],
           value: "all"
+        },
+        {
+          name: "sort_by",
+          title: "排序方式",
+          type: "enumeration",
+          enumOptions: [
+            { title: "热门降序", value: "popularity.desc" },
+            { title: "评分降序", value: "vote_average.desc" },
+            { title: "发行日期降序", value: "release_date.desc" }
+          ],
+          value: "popularity.desc"
         }
       ]
     },
@@ -107,6 +129,17 @@ var WidgetMetadata = {
             { title: "电视剧", value: "tv" }
           ],
           value: "all"
+        },
+        {
+          name: "sort_by",
+          title: "排序方式",
+          type: "enumeration",
+          enumOptions: [
+            { title: "热门降序", value: "popularity.desc" },
+            { title: "评分降序", value: "vote_average.desc" },
+            { title: "发行日期降序", value: "release_date.desc" }
+          ],
+          value: "popularity.desc"
         }
       ]
     },
@@ -139,6 +172,17 @@ var WidgetMetadata = {
             { title: "电视剧", value: "tv" }
           ],
           value: "all"
+        },
+        {
+          name: "sort_by",
+          title: "排序方式",
+          type: "enumeration",
+          enumOptions: [
+            { title: "热门降序", value: "popularity.desc" },
+            { title: "评分降序", value: "vote_average.desc" },
+            { title: "发行日期降序", value: "release_date.desc" }
+          ],
+          value: "popularity.desc"
         }
       ]
     }
@@ -181,10 +225,26 @@ function filterByType(items, targetType) {
   return items.filter(item => item.mediaType === targetType);
 }
 
+// 排序函数：按字段排序
+function applySorting(items, sortBy) {
+  if (!sortBy) return items;
+
+  switch (sortBy) {
+    case "vote_average.desc":
+      return [...items].sort((a, b) => b.vote_average - a.vote_average);
+    case "release_date.desc":
+      return [...items].sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
+    case "popularity.desc":
+      return [...items].sort((a, b) => b.popularity - a.popularity);
+    default:
+      return items;
+  }
+}
+
 // 获取导演作品
 async function getDirectorWorks(params = {}) {
   try {
-    const { personId, language, type } = params;
+    const { personId, language, type, sort_by } = params;
     if (!personId) throw new Error("缺少个人ID参数");
     
     const { crew } = await fetchCredits(personId, language);
@@ -197,7 +257,10 @@ async function getDirectorWorks(params = {}) {
     // 按类型筛选
     const filtered = filterByType(directorWorks, type);
     
-    return filtered.map(movie => ({
+    // 按排序方式处理
+    const sorted = applySorting(filtered, sort_by);
+    
+    return sorted.map(movie => ({
       id: movie.id,
       type: "tmdb",
       title: movie.title || movie.name,
@@ -217,7 +280,7 @@ async function getDirectorWorks(params = {}) {
 // 获取演员作品
 async function getActorWorks(params = {}) {
   try {
-    const { personId, language, type } = params;
+    const { personId, language, type, sort_by } = params;
     if (!personId) throw new Error("缺少个人ID参数");
     
     const { cast } = await fetchCredits(personId, language);
@@ -225,7 +288,10 @@ async function getActorWorks(params = {}) {
     // 按类型筛选
     const filtered = filterByType(cast, type);
     
-    return filtered.map(movie => ({
+    // 按排序方式处理
+    const sorted = applySorting(filtered, sort_by);
+    
+    return sorted.map(movie => ({
       id: movie.id,
       type: "tmdb",
       title: movie.title || movie.name,
@@ -245,7 +311,7 @@ async function getActorWorks(params = {}) {
 // 获取其他作品（排除导演和演员）
 async function getOtherWorks(params = {}) {
   try {
-    const { personId, language, type } = params;
+    const { personId, language, type, sort_by } = params;
     if (!personId) throw new Error("缺少个人ID参数");
     
     const { crew } = await fetchCredits(personId, language);
@@ -259,7 +325,10 @@ async function getOtherWorks(params = {}) {
     // 按类型筛选
     const filtered = filterByType(otherWorks, type);
     
-    return filtered.map(movie => ({
+    // 按排序方式处理
+    const sorted = applySorting(filtered, sort_by);
+    
+    return sorted.map(movie => ({
       id: movie.id,
       type: "tmdb",
       title: movie.title || movie.name,
@@ -279,7 +348,7 @@ async function getOtherWorks(params = {}) {
 // 获取全部作品（合并演员和导演作品）
 async function getAllWorks(params = {}) {
   try {
-    const { personId, language, type } = params;
+    const { personId, language, type, sort_by } = params;
     if (!personId) throw new Error("缺少个人ID参数");
     
     const { cast, crew } = await fetchCredits(personId, language);
@@ -298,7 +367,10 @@ async function getAllWorks(params = {}) {
     // 按类型筛选
     const filtered = filterByType(Object.values(allWorksMap), type);
     
-    return filtered.map(movie => ({
+    // 按排序方式处理
+    const sorted = applySorting(filtered, sort_by);
+    
+    return sorted.map(movie => ({
       id: movie.id,
       type: "tmdb",
       title: movie.title || movie.name,
