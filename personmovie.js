@@ -1,4 +1,4 @@
-// 个人作品组件
+var WidgetMetadata = {
   id: "TMDB.person.Movie",
   title: "TMDB个人作品集",
   version: "1.1.2",
