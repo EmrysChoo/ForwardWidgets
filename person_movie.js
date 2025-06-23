@@ -7,6 +7,7 @@ var WidgetMetadata = {
   author: "Evan", 
   site: "https://github.com/EmrysChoo/ForwardWidgets", 
   cacheDuration: 172800, 
+
   modules: [
     {
       id: "allWorks",
@@ -27,17 +28,7 @@ var WidgetMetadata = {
           type: "language",
           value: "zh-CN"
         },
-        {
-          name: "type",
-          title: "类型",
-          type: "enumeration",
-          enumOptions: [
-            { title: "全部", value: "all" },
-            { title: "电影", value: "movie" },
-            { title: "电视剧", value: "tv" }
-          ],
-          value: "all"
-        },
+       
         {
           name: "sort_by",
           title: "排序方式",
@@ -72,17 +63,6 @@ var WidgetMetadata = {
           title: "语言",
           type: "language",
           value: "zh-CN"
-        },
-        {
-          name: "type",
-          title: "类型",
-          type: "enumeration",
-          enumOptions: [
-            { title: "全部", value: "all" },
-            { title: "电影", value: "movie" },
-            { title: "电视剧", value: "tv" }
-          ],
-          value: "all"
         },
         {
           name: "sort_by",
@@ -120,17 +100,6 @@ var WidgetMetadata = {
           value: "zh-CN"
         },
         {
-          name: "type",
-          title: "类型",
-          type: "enumeration",
-          enumOptions: [
-            { title: "全部", value: "all" },
-            { title: "电影", value: "movie" },
-            { title: "电视剧", value: "tv" }
-          ],
-          value: "all"
-        },
-        {
           name: "sort_by",
           title: "排序方式",
           type: "enumeration",
@@ -161,17 +130,6 @@ var WidgetMetadata = {
           title: "语言",
           type: "language",
           value: "zh-CN"
-        },
-        {
-          name: "type",
-          title: "类型",
-          type: "enumeration",
-          enumOptions: [
-            { title: "全部", value: "all" },
-            { title: "电影", value: "movie" },
-            { title: "电视剧", value: "tv" }
-          ],
-          value: "all"
         },
         {
           name: "sort_by",
@@ -221,12 +179,6 @@ async function fetchCredits(personId, language) {
   }
 }
 
-// 过滤函数：按类型筛选
-function filterByType(items, targetType) {
-  if (targetType === "all") return items;
-  return items.filter(item => item.mediaType === targetType);
-}
-
 // 排序函数：按字段排序
 function applySorting(items, sortBy) {
   if (!sortBy) return items;
@@ -251,21 +203,18 @@ async function getAllWorks(params = {}) {
     
     const { cast, crew } = await fetchCredits(personId, language);
     
-    // 合并数据并使用组合键去重
+    // 合并数据并去重
     const allWorksMap = {};
-    [...cast, ...crew].forEach((movie, index) => {
-      const uniqueKey = `${movie.id}-${movie.mediaType}`; // ✅ 使用组合键去重
-      if (!allWorksMap[uniqueKey]) {
-        allWorksMap[uniqueKey] = {
+    [...cast, ...crew].forEach(movie => {
+      if (!allWorksMap[movie.id]) {
+        allWorksMap[movie.id] = {
           ...movie,
           title: movie.title || movie.name,
+          releaseDate: movie.release_date || movie.first_air_date,
           mediaType: movie.media_type === "tv" ? "tv" : "movie"
         };
       }
     });
-    
-    // 按类型筛选
-    const filtered = filterByType(Object.values(allWorksMap), type);
     
     // 按排序方式处理
     const sorted = applySorting(filtered, sort_by);
@@ -295,9 +244,6 @@ async function getActorWorks(params = {}) {
     
     const { cast } = await fetchCredits(personId, language);
     
-    // 按类型筛选
-    const filtered = filterByType(cast, type);
-    
     // 按排序方式处理
     const sorted = applySorting(filtered, sort_by);
     
@@ -326,13 +272,11 @@ async function getDirectorWorks(params = {}) {
     
     const { crew } = await fetchCredits(personId, language);
     
-    // 筛选导演作品（模糊匹配）
+    // 筛选导演作品
     const directorWorks = crew.filter(item => 
       item.job?.toLowerCase().includes("director")
     );
     
-    // 按类型筛选
-    const filtered = filterByType(directorWorks, type);
     
     // 按排序方式处理
     const sorted = applySorting(filtered, sort_by);
@@ -367,9 +311,6 @@ async function getOtherWorks(params = {}) {
       const job = item.job?.toLowerCase();
       return !job.includes("director") && !job.includes("actor");
     });
-    
-    // 按类型筛选
-    const filtered = filterByType(otherWorks, type);
     
     // 按排序方式处理
     const sorted = applySorting(filtered, sort_by);
