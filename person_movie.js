@@ -1,7 +1,7 @@
 var WidgetMetadata = {
   id: "forward.tmdb.person.credits",
   title: "个人作品集",
-  version: "1.0.0",
+  version: "1.0.2",
   requiredVersion: "0.0.1",
   description: "获取 TMDB 个人相关作品数据（全部/演员/导演/其他）",
   author: "Forward",
