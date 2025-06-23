@@ -1,12 +1,12 @@
 var WidgetMetadata = {
-  id: "TMDB person Movie",
-  title: "TMDB个人作品集",
+  id: "forward.tmdb.person.credits",
+  title: "个人作品集",
   version: "1.0.0",
   requiredVersion: "0.0.1",
-  description: "获取 TMDB 个人相关作品数据",
-  author: "Evan",
-  site: "https://github.com/EmrysChoo/ForwardWidgets", 
-  cacheDuration: 172800, // 48小时缓存
+  description: "获取 TMDB 个人相关作品数据（导演/演员/其他/全部）",
+  author: "Forward",
+  site: "https://github.com/InchStudio/ForwardWidgets", 
+  cacheDuration: 172800, // 2天缓存
   modules: [
     {
       id: "directorWorks",
@@ -19,9 +19,9 @@ var WidgetMetadata = {
           title: "个人ID",
           type: "input",
           description: "在 TMDB 网站获取的数字 ID",
-          value: "500",
+          value: "500", // 示例：Tom Cruise
           placeholders: [
-            { title: "示例：周星驰", value: "57607" }
+            { title: "示例：Christopher Nolan", value: "525" }
           ]
         },
         {
@@ -39,7 +39,7 @@ var WidgetMetadata = {
             { title: "电影", value: "movie" },
             { title: "电视剧", value: "tv" }
           ],
-          value: "all"
+          value: "all" // 默认显示全部
         }
       ]
     },
@@ -54,9 +54,9 @@ var WidgetMetadata = {
           title: "个人ID",
           type: "input",
           description: "在 TMDB 网站获取的数字 ID",
-          value: "500",
+          value: "500", // 示例：Tom Cruise
           placeholders: [
-            { title: "示例：Tom Cruise", value: "500" }
+            { title: "示例：Leonardo DiCaprio", value: "6194" }
           ]
         },
         {
@@ -156,11 +156,19 @@ async function fetchCredits(personId, language) {
     if (!response || (!response.cast && !response.crew)) {
       throw new Error("获取作品数据失败");
     }
+
+    // 统一字段名：mediaType
+    const cast = response.cast?.map(item => ({
+      ...item,
+      mediaType: item.media_type
+    })) || [];
     
-    return {
-      cast: response.cast || [],
-      crew: response.crew || []
-    };
+    const crew = response.crew?.map(item => ({
+      ...item,
+      mediaType: item.media_type
+    })) || [];
+    
+    return { cast, crew };
   } catch (error) {
     console.error("调用 TMDB API 失败:", error);
     throw error;
@@ -170,7 +178,7 @@ async function fetchCredits(personId, language) {
 // 过滤函数：按类型筛选
 function filterByType(items, targetType) {
   if (targetType === "all") return items;
-  return items.filter(item => item.media_type === targetType);
+  return items.filter(item => item.mediaType === targetType);
 }
 
 // 获取导演作品
@@ -198,7 +206,7 @@ async function getDirectorWorks(params = {}) {
       posterPath: movie.poster_path,
       backdropPath: movie.backdrop_path,
       rating: movie.vote_average,
-      mediaType: movie.media_type === "tv" ? "tv" : "movie"
+      mediaType: movie.mediaType
     }));
   } catch (error) {
     console.error("获取导演作品失败:", error);
@@ -226,7 +234,7 @@ async function getActorWorks(params = {}) {
       posterPath: movie.poster_path,
       backdropPath: movie.backdrop_path,
       rating: movie.vote_average,
-      mediaType: movie.media_type === "tv" ? "tv" : "movie"
+      mediaType: movie.mediaType
     }));
   } catch (error) {
     console.error("获取演员作品失败:", error);
@@ -260,7 +268,7 @@ async function getOtherWorks(params = {}) {
       posterPath: movie.poster_path,
       backdropPath: movie.backdrop_path,
       rating: movie.vote_average,
-      mediaType: movie.media_type === "tv" ? "tv" : "movie"
+      mediaType: movie.mediaType
     }));
   } catch (error) {
     console.error("获取其他作品失败:", error);
@@ -280,7 +288,10 @@ async function getAllWorks(params = {}) {
     const allWorksMap = {};
     [...cast, ...crew].forEach(movie => {
       if (!allWorksMap[movie.id]) {
-        allWorksMap[movie.id] = movie;
+        allWorksMap[movie.id] = {
+          ...movie,
+          title: movie.title || movie.name
+        };
       }
     });
     
@@ -296,7 +307,7 @@ async function getAllWorks(params = {}) {
       posterPath: movie.poster_path,
       backdropPath: movie.backdrop_path,
       rating: movie.vote_average,
-      mediaType: movie.media_type === "tv" ? "tv" : "movie"
+      mediaType: movie.mediaType
     }));
   } catch (error) {
     console.error("获取全部作品失败:", error);
