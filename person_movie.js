@@ -1,279 +1,158 @@
+```javascript
 var WidgetMetadata = {
   id: "TMDB person Movie",
   title: "TMDB个人作品集",
-  version: "1.0.4",
+  version: "1.0.6",
   requiredVersion: "0.0.1",
   description: "获取 TMDB 个人相关作品数据（Forward 5折优惠码 LUCKY.5)",
   author: "Evan",
-  site: "https://github.com/EmrysChoo/ForwardWidgets", 
-  cacheDuration: 172800, 
+  site: "https://github.com/EmrysChoo/ForwardWidgets",
+  cacheDuration: 172800,
   modules: [
     {
       id: "allWorks",
       title: "全部作品",
-      functionName: "getAllWorks",
-      cacheDuration: 172800,
+      functionName: "fetchAllWorks",
       params: [
-        {
-          name: "personId",
-          title: "个人ID",
-          type: "input",
-          description: "在 TMDB 网站获取的数字 ID",
-          value: "500"
-        },
-        {
-          name: "language",
-          title: "语言",
-          type: "language",
-          value: "zh-CN"
-        },
-        {
-          name: "type",
-          title: "类型",
-          type: "enumeration",
-          enumOptions: [
-            { title: "全部", value: "all" },
-            { title: "电影", value: "movie" },
-            { title: "电视剧", value: "tv" }
-          ],
-          value: "all"
-        },
-        {
-          name: "sort_by",
-          title: "排序方式",
-          type: "enumeration",
-          enumOptions: [
-            { title: "热门降序", value: "popularity.desc" },
-            { title: "评分降序", value: "vote_average.desc" },
-            { title: "发行日期降序", value: "release_date.desc" }
-          ],
-          value: "popularity.desc"
-        }
+        { name: "personId", title: "个人ID", type: "input", description: "在 TMDB 网站获取的数字 ID", value: "500" },
+        { name: "language", title: "语言", type: "language", value: "zh-CN" },
+        { name: "type", title: "类型", type: "enumeration", enumOptions: [
+          { title: "全部", value: "all" }, { title: "电影", value: "movie" }, { title: "电视剧", value: "tv" }
+        ], value: "all" },
+        { name: "sort_by", title: "排序方式", type: "enumeration", enumOptions: [
+          { title: "热门降序", value: "popularity.desc" },
+          { title: "评分降序", value: "vote_average.desc" },
+          { title: "发行日期降序", value: "release_date.desc" }
+        ], value: "popularity.desc" },
+        { name: "page", title: "页码", type: "page" }
       ]
     },
     {
       id: "actorWorks",
       title: "演员作品",
-      functionName: "getActorWorks",
-      cacheDuration: 172800,
+      functionName: "fetchActorWorks",
       params: [
-        {
-          name: "personId",
-          title: "个人ID",
-          type: "input",
-          description: "在 TMDB 网站获取的数字 ID",
-          value: "500", // 示例：Tom Cruise
-          placeholders: [
-            { title: "示例：Leonardo DiCaprio", value: "6194" }
-          ]
-        },
-        {
-          name: "language",
-          title: "语言",
-          type: "language",
-          value: "zh-CN"
-        },
-        {
-          name: "type",
-          title: "类型",
-          type: "enumeration",
-          enumOptions: [
-            { title: "全部", value: "all" },
-            { title: "电影", value: "movie" },
-            { title: "电视剧", value: "tv" }
-          ],
-          value: "all"
-        },
-        {
-          name: "sort_by",
-          title: "排序方式",
-          type: "enumeration",
-          enumOptions: [
-            { title: "热门降序", value: "popularity.desc" },
-            { title: "评分降序", value: "vote_average.desc" },
-            { title: "发行日期降序", value: "release_date.desc" }
-          ],
-          value: "popularity.desc"
-        }
+        { name: "personId", title: "个人ID", type: "input", description: "在 TMDB 网站获取的数字 ID", value: "500", placeholders: [{ title: "示例：Leonardo DiCaprio", value: "6194" }] },
+        { name: "language", title: "语言", type: "language", value: "zh-CN" },
+        { name: "type", title: "类型", type: "enumeration", enumOptions: [
+          { title: "全部", value: "all" }, { title: "电影", value: "movie" }, { title: "电视剧", value: "tv" }
+        ], value: "all" },
+        { name: "sort_by", title: "排序方式", type: "enumeration", enumOptions: [
+          { title: "热门降序", value: "popularity.desc" },
+          { title: "评分降序", value: "vote_average.desc" },
+          { title: "发行日期降序", value: "release_date.desc" }
+        ], value: "popularity.desc" },
+        { name: "page", title: "页码", type: "page" }
       ]
     },
     {
       id: "directorWorks",
       title: "导演作品",
-      functionName: "getDirectorWorks",
-      cacheDuration: 172800,
+      functionName: "fetchDirectorWorks",
       params: [
-        {
-          name: "personId",
-          title: "个人ID",
-          type: "input",
-          description: "在 TMDB 网站获取的数字 ID",
-          value: "500", // 示例：Tom Cruise
-          placeholders: [
-            { title: "示例：Christopher Nolan", value: "525" }
-          ]
-        },
-        {
-          name: "language",
-          title: "语言",
-          type: "language",
-          value: "zh-CN"
-        },
-        {
-          name: "type",
-          title: "类型",
-          type: "enumeration",
-          enumOptions: [
-            { title: "全部", value: "all" },
-            { title: "电影", value: "movie" },
-            { title: "电视剧", value: "tv" }
-          ],
-          value: "all"
-        },
-        {
-          name: "sort_by",
-          title: "排序方式",
-          type: "enumeration",
-          enumOptions: [
-            { title: "热门降序", value: "popularity.desc" },
-            { title: "评分降序", value: "vote_average.desc" },
-            { title: "发行日期降序", value: "release_date.desc" }
-          ],
-          value: "popularity.desc"
-        }
+        { name: "personId", title: "个人ID", type: "input", description: "在 TMDB 网站获取的数字 ID", value: "500", placeholders: [{ title: "示例：Christopher Nolan", value: "525" }] },
+        { name: "language", title: "语言", type: "language", value: "zh-CN" },
+        { name: "type", title: "类型", type: "enumeration", enumOptions: [
+          { title: "全部", value: "all" }, { title: "电影", value: "movie" }, { title: "电视剧", value: "tv" }
+        ], value: "all" },
+        { name: "sort_by", title: "排序方式", type: "enumeration", enumOptions: [
+          { title: "热门降序", value: "popularity.desc" },
+          { title: "评分降序", value: "vote_average.desc" },
+          { title: "发行日期降序", value: "release_date.desc" }
+        ], value: "popularity.desc" },
+        { name: "page", title: "页码", type: "page" }
       ]
     },
     {
       id: "otherWorks",
       title: "其他作品",
-      functionName: "getOtherWorks",
-      cacheDuration: 172800,
+      functionName: "fetchOtherWorks",
       params: [
-        {
-          name: "personId",
-          title: "个人ID",
-          type: "input",
-          description: "在 TMDB 网站获取的数字 ID",
-          value: "500"
-        },
-        {
-          name: "language",
-          title: "语言",
-          type: "language",
-          value: "zh-CN"
-        },
-        {
-          name: "type",
-          title: "类型",
-          type: "enumeration",
-          enumOptions: [
-            { title: "全部", value: "all" },
-            { title: "电影", value: "movie" },
-            { title: "电视剧", value: "tv" }
-          ],
-          value: "all"
-        },
-        {
-          name: "sort_by",
-          title: "排序方式",
-          type: "enumeration",
-          enumOptions: [
-            { title: "热门降序", value: "popularity.desc" },
-            { title: "评分降序", value: "vote_average.desc" },
-            { title: "发行日期降序", value: "release_date.desc" }
-          ],
-          value: "popularity.desc"
-        }
+        { name: "personId", title: "个人ID", type: "input", description: "在 TMDB 网站获取的数字 ID", value: "500" },
+        { name: "language", title: "语言", type: "language", value: "zh-CN" },
+        { name: "type", title: "类型", type: "enumeration", enumOptions: [
+          { title: "全部", value: "all" }, { title: "电影", value: "movie" }, { title: "电视剧", value: "tv" }
+        ], value: "all" },
+        { name: "sort_by", title: "排序方式", type: "enumeration", enumOptions: [
+          { title: "热门降序", value: "popularity.desc" },
+          { title: "评分降序", value: "vote_average.desc" },
+          { title: "发行日期降序", value: "release_date.desc" }
+        ], value: "popularity.desc" },
+        { name: "page", title: "页码", type: "page" }
       ]
     }
   ]
 };
 
-// 基础获取TMDB人员作品方法
-async function fetchCredits(personId, language) {
+// 公共函数：获取 TMDB 人物作品数据
+async function fetchCredits(personId, language, mediaType = 'movie') {
   try {
-    const api = `person/${personId}/movie_credits`;
+    const api = `person/${personId}/${mediaType}_credits`;
     const response = await Widget.tmdb.get(api, {
       params: { language: language || "zh-CN" }
     });
-    
+
     if (!response || (!response.cast && !response.crew)) {
-      throw new Error("获取作品数据失败");
+      throw new Error(`获取 ${mediaType} 作品数据失败`);
     }
 
-    // 统一字段名：mediaType
-    const cast = response.cast?.map(item => ({
-      ...item,
-      mediaType: item.media_type,
-      releaseDate: item.release_date || item.first_air_date
-    })) || [];
-    
-    const crew = response.crew?.map(item => ({
-      ...item,
-      mediaType: item.media_type,
-      releaseDate: item.release_date || item.first_air_date
-    })) || [];
-    
-    return { cast, crew };
+    return {
+      cast: response.cast?.map(item => ({
+        ...item,
+        mediaType: item.media_type,
+        releaseDate: item.release_date || item.first_air_date
+      })) || [],
+      crew: response.crew?.map(item => ({
+        ...item,
+        mediaType: item.media_type,
+        releaseDate: item.release_date || item.first_air_date
+      })) || []
+    };
   } catch (error) {
-    console.error("调用 TMDB API 失败:", error);
+    console.error(`调用 TMDB API 获取 ${mediaType} 作品失败:`, error);
     throw error;
   }
 }
 
-// 过滤函数：按类型筛选
-function filterByType(items, targetType) {
-  if (targetType === "all") return items;
-  return items.filter(item => item.mediaType === targetType);
-}
-
-// 排序函数：按字段排序
-function applySorting(items, sortBy) {
-  if (!sortBy) return items;
-
-  switch (sortBy) {
-    case "vote_average.desc":
-      return [...items].sort((a, b) => b.vote_average - a.vote_average);
-    case "release_date.desc":
-      return [...items].sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
-    case "popularity.desc":
-      return [...items].sort((a, b) => b.popularity - a.popularity);
-    default:
-      return items;
-  }
-}
-
-// 获取全部作品（合并演员和导演作品）
-async function getAllWorks(params = {}) {
+// 核心函数：获取全部作品（演员、导演、编剧、制片人等）
+async function fetchAllWorks(params = {}) {
   try {
-    const { personId, language, type, sort_by } = params;
+    const { personId, language, type, sort_by, page = 1 } = params;
+
     if (!personId) throw new Error("缺少个人ID参数");
-    
-    const { cast, crew } = await fetchCredits(personId, language);
-    
-    // 合并数据并去重
+
+    const [movieCredits, tvCredits] = await Promise.all([
+      fetchCredits(personId, language, 'movie'),
+      fetchCredits(personId, language, 'tv')
+    ]);
+
     const allWorksMap = {};
-    [...cast, ...crew].forEach(movie => {
-      if (!allWorksMap[movie.id]) {
-        allWorksMap[movie.id] = {
-          ...movie,
-          title: movie.title || movie.name,
-          releaseDate: movie.release_date || movie.first_air_date,
-          mediaType: movie.media_type === "tv" ? "tv" : "movie"
+
+    [...movieCredits.cast, ...movieCredits.crew, ...tvCredits.cast, ...tvCredits.crew].forEach(item => {
+      const key = `${item.id}-${item.media_type}`;
+      if (!allWorksMap[key]) {
+        allWorksMap[key] = {
+          ...item,
+          title: item.title || item.name,
+          releaseDate: item.releaseDate,
+          mediaType: item.media_type === "tv" ? "tv" : "movie"
         };
       }
     });
-    
-    // 按类型筛选
-    const filtered = filterByType(Object.values(allWorksMap), type);
-    
-    // 按排序方式处理
-    const sorted = applySorting(filtered, sort_by);
-    
-    return sorted.map(movie => ({
+
+    let allWorks = Object.values(allWorksMap);
+    allWorks = filterByType(allWorks, type);
+    allWorks = applySorting(allWorks, sort_by);
+
+    const pageSize = 20;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const paginated = allWorks.slice(start, end);
+
+    return paginated.map(movie => ({
       id: movie.id,
       type: "tmdb",
-      title: movie.title || movie.name,
+      title: movie.title,
       description: movie.overview,
       releaseDate: movie.releaseDate,
       posterPath: movie.poster_path,
@@ -288,30 +167,13 @@ async function getAllWorks(params = {}) {
 }
 
 // 获取演员作品
-async function getActorWorks(params = {}) {
+async function fetchActorWorks(params = {}) {
   try {
-    const { personId, language, type, sort_by } = params;
-    if (!personId) throw new Error("缺少个人ID参数");
-    
-    const { cast } = await fetchCredits(personId, language);
-    
-    // 按类型筛选
-    const filtered = filterByType(cast, type);
-    
-    // 按排序方式处理
-    const sorted = applySorting(filtered, sort_by);
-    
-    return sorted.map(movie => ({
-      id: movie.id,
-      type: "tmdb",
-      title: movie.title || movie.name,
-      description: movie.overview,
-      releaseDate: movie.releaseDate,
-      posterPath: movie.poster_path,
-      backdropPath: movie.backdrop_path,
-      rating: movie.vote_average,
-      mediaType: movie.mediaType
-    }));
+    const { personId, language, type, sort_by, page } = params;
+    const { cast } = await fetchCredits(personId, language, 'movie');
+    let filtered = filterByType(cast, type);
+    filtered = applySorting(filtered, sort_by);
+    return processPaginatedResults(filtered, page, "movie");
   } catch (error) {
     console.error("获取演员作品失败:", error);
     throw error;
@@ -319,35 +181,16 @@ async function getActorWorks(params = {}) {
 }
 
 // 获取导演作品
-async function getDirectorWorks(params = {}) {
+async function fetchDirectorWorks(params = {}) {
   try {
-    const { personId, language, type, sort_by } = params;
-    if (!personId) throw new Error("缺少个人ID参数");
-    
-    const { crew } = await fetchCredits(personId, language);
-    
-    // 筛选导演作品
-    const directorWorks = crew.filter(item => 
-      item.job?.toLowerCase().includes("director")
+    const { personId, language, type, sort_by, page } = params;
+    const { crew } = await fetchCredits(personId, language, 'movie');
+    let directorWorks = crew.filter(item => 
+      item.job?.toLowerCase().match(/director|directing/i)
     );
-    
-    // 按类型筛选
-    const filtered = filterByType(directorWorks, type);
-    
-    // 按排序方式处理
-    const sorted = applySorting(filtered, sort_by);
-    
-    return sorted.map(movie => ({
-      id: movie.id,
-      type: "tmdb",
-      title: movie.title || movie.name,
-      description: movie.overview,
-      releaseDate: movie.releaseDate,
-      posterPath: movie.poster_path,
-      backdropPath: movie.backdrop_path,
-      rating: movie.vote_average,
-      mediaType: movie.mediaType
-    }));
+    let filtered = filterByType(directorWorks, type);
+    filtered = applySorting(filtered, sort_by);
+    return processPaginatedResults(filtered, page, "movie");
   } catch (error) {
     console.error("获取导演作品失败:", error);
     throw error;
@@ -355,38 +198,57 @@ async function getDirectorWorks(params = {}) {
 }
 
 // 获取其他作品（排除导演和演员）
-async function getOtherWorks(params = {}) {
+async function fetchOtherWorks(params = {}) {
   try {
-    const { personId, language, type, sort_by } = params;
-    if (!personId) throw new Error("缺少个人ID参数");
-    
-    const { crew } = await fetchCredits(personId, language);
-    
-    // 排除导演和演员相关的作品
-    const otherWorks = crew.filter(item => {
-      const job = item.job?.toLowerCase();
-      return !job.includes("director") && !job.includes("actor");
-    });
-    
-    // 按类型筛选
-    const filtered = filterByType(otherWorks, type);
-    
-    // 按排序方式处理
-    const sorted = applySorting(filtered, sort_by);
-    
-    return sorted.map(movie => ({
-      id: movie.id,
-      type: "tmdb",
-      title: movie.title || movie.name,
-      description: movie.overview,
-      releaseDate: movie.releaseDate,
-      posterPath: movie.poster_path,
-      backdropPath: movie.backdrop_path,
-      rating: movie.vote_average,
-      mediaType: movie.mediaType
-    }));
+    const { personId, language, type, sort_by, page } = params;
+    const { crew } = await fetchCredits(personId, language, 'movie');
+    let otherWorks = crew.filter(item => 
+      !item.job?.toLowerCase().match(/director|actor|acting/i)
+    );
+    let filtered = filterByType(otherWorks, type);
+    filtered = applySorting(filtered, sort_by);
+    return processPaginatedResults(filtered, page, "movie");
   } catch (error) {
     console.error("获取其他作品失败:", error);
     throw error;
   }
 }
+
+// 辅助函数：过滤、排序、分页
+function filterByType(items, targetType) {
+  if (targetType === "all") return items;
+  return items.filter(item => item.mediaType === targetType);
+}
+
+function applySorting(items, sortBy) {
+  if (!sortBy) return items;
+  switch (sortBy) {
+    case "vote_average.desc":
+      return [...items].sort((a, b) => b.vote_average - a.vote_average);
+    case "release_date.desc":
+      return [...items].sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
+    case "popularity.desc":
+      return [...items].sort((a, b) => b.popularity - a.popularity);
+    default:
+      return items;
+  }
+}
+
+function processPaginatedResults(items, page, defaultMediaType = "movie") {
+  const pageSize = 20;
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
+  const paginated = items.slice(start, end);
+  return paginated.map(movie => ({
+    id: movie.id,
+    type: "tmdb",
+    title: movie.title,
+    description: movie.overview,
+    releaseDate: movie.releaseDate,
+    posterPath: movie.poster_path,
+    backdropPath: movie.backdrop_path,
+    rating: movie.vote_average,
+    mediaType: movie.mediaType || defaultMediaType
+  }));
+}
+```
