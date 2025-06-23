@@ -1,14 +1,13 @@
 var WidgetMetadata = {
-  id: "forward.tmdb.person.credits",
-  title: "个人作品集",
-  version: "1.0.0",
+  id: "TMDB person Movie",
+  title: "TMDB个人作品集",
+  version: "1.0.4",
   requiredVersion: "0.0.1",
-  description: "获取 TMDB 个人相关作品数据（全部/演员/导演/其他）",
-  author: "Forward",
-  site: "https://github.com/InchStudio/ForwardWidgets", 
-  cacheDuration: 172800, // 2天缓存
+  description: "获取 TMDB 个人相关作品数据（Forward 5折优惠码 LUCKY.5)",
+  author: "Evan",
+  site: "https://github.com/EmrysChoo/ForwardWidgets", 
+  cacheDuration: 172800, 
   modules: [
-    // ✅ 模块顺序调整为：全部作品 → 演员作品 → 导演作品 → 其他作品
     {
       id: "allWorks",
       title: "全部作品",
