@@ -4,7 +4,7 @@
   "icon": "https://assets.vvebo.vip/scripts/icon.png",
   "widgets": [
     {
-      "id": "TMDB.person.Movie",
+      "id": "TMDBpersonMovie",
       "title": "TMDB个人作品集",
       "description": "获取 TMDB 个人相关作品数据（Forward 5折优惠码 LUCKY.5)",
       "requiredVersion": "0.0.1",
