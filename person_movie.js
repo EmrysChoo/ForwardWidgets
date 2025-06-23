@@ -1,14 +1,14 @@
 var WidgetMetadata = {
-  id: "TMDB person Movie",
-  title: "TMDB个人作品集",
-  version: "1.0.3",
+  id: "forward.tmdb.person.credits",
+  title: "个人作品集",
+  version: "1.0.0",
   requiredVersion: "0.0.1",
-  description: "获取 TMDB 个人相关作品数据",
-  author: "Evan", 
-  site: "https://github.com/EmrysChoo/ForwardWidgets", 
-  cacheDuration: 172800, 
-
+  description: "获取 TMDB 个人相关作品数据（全部/演员/导演/其他）",
+  author: "Forward",
+  site: "https://github.com/InchStudio/ForwardWidgets", 
+  cacheDuration: 172800, // 2天缓存
   modules: [
+    // ✅ 模块顺序调整为：全部作品 → 演员作品 → 导演作品 → 其他作品
     {
       id: "allWorks",
       title: "全部作品",
@@ -28,7 +28,17 @@ var WidgetMetadata = {
           type: "language",
           value: "zh-CN"
         },
-       
+        {
+          name: "type",
+          title: "类型",
+          type: "enumeration",
+          enumOptions: [
+            { title: "全部", value: "all" },
+            { title: "电影", value: "movie" },
+            { title: "电视剧", value: "tv" }
+          ],
+          value: "all"
+        },
         {
           name: "sort_by",
           title: "排序方式",
@@ -63,6 +73,17 @@ var WidgetMetadata = {
           title: "语言",
           type: "language",
           value: "zh-CN"
+        },
+        {
+          name: "type",
+          title: "类型",
+          type: "enumeration",
+          enumOptions: [
+            { title: "全部", value: "all" },
+            { title: "电影", value: "movie" },
+            { title: "电视剧", value: "tv" }
+          ],
+          value: "all"
         },
         {
           name: "sort_by",
@@ -100,6 +121,17 @@ var WidgetMetadata = {
           value: "zh-CN"
         },
         {
+          name: "type",
+          title: "类型",
+          type: "enumeration",
+          enumOptions: [
+            { title: "全部", value: "all" },
+            { title: "电影", value: "movie" },
+            { title: "电视剧", value: "tv" }
+          ],
+          value: "all"
+        },
+        {
           name: "sort_by",
           title: "排序方式",
           type: "enumeration",
@@ -130,6 +162,17 @@ var WidgetMetadata = {
           title: "语言",
           type: "language",
           value: "zh-CN"
+        },
+        {
+          name: "type",
+          title: "类型",
+          type: "enumeration",
+          enumOptions: [
+            { title: "全部", value: "all" },
+            { title: "电影", value: "movie" },
+            { title: "电视剧", value: "tv" }
+          ],
+          value: "all"
         },
         {
           name: "sort_by",
@@ -179,6 +222,12 @@ async function fetchCredits(personId, language) {
   }
 }
 
+// 过滤函数：按类型筛选
+function filterByType(items, targetType) {
+  if (targetType === "all") return items;
+  return items.filter(item => item.mediaType === targetType);
+}
+
 // 排序函数：按字段排序
 function applySorting(items, sortBy) {
   if (!sortBy) return items;
@@ -216,6 +265,9 @@ async function getAllWorks(params = {}) {
       }
     });
     
+    // 按类型筛选
+    const filtered = filterByType(Object.values(allWorksMap), type);
+    
     // 按排序方式处理
     const sorted = applySorting(filtered, sort_by);
     
@@ -243,6 +295,9 @@ async function getActorWorks(params = {}) {
     if (!personId) throw new Error("缺少个人ID参数");
     
     const { cast } = await fetchCredits(personId, language);
+    
+    // 按类型筛选
+    const filtered = filterByType(cast, type);
     
     // 按排序方式处理
     const sorted = applySorting(filtered, sort_by);
@@ -277,6 +332,8 @@ async function getDirectorWorks(params = {}) {
       item.job?.toLowerCase().includes("director")
     );
     
+    // 按类型筛选
+    const filtered = filterByType(directorWorks, type);
     
     // 按排序方式处理
     const sorted = applySorting(filtered, sort_by);
@@ -311,6 +368,9 @@ async function getOtherWorks(params = {}) {
       const job = item.job?.toLowerCase();
       return !job.includes("director") && !job.includes("actor");
     });
+    
+    // 按类型筛选
+    const filtered = filterByType(otherWorks, type);
     
     // 按排序方式处理
     const sorted = applySorting(filtered, sort_by);
