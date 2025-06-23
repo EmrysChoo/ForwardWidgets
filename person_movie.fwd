@@ -8,7 +8,7 @@
       "title": "TMDB个人作品集",
       "description": "获取 TMDB 个人相关作品数据",
       "requiredVersion": "0.0.1",
-      "version": "1.0.2",
+      "version": "1.0.1",
       "author": "Evan",
       "url": "https://raw.githubusercontent.com/EmrysChoo/ForwardWidgets/refs/heads/main/person_movie.js"
     }
