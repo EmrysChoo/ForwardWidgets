@@ -1,7 +1,7 @@
 var WidgetMetadata = {
   id: "TMDB.person.Movie",
   title: "TMDB个人作品集",
-  version: "1.1.0",
+  version: "1.1.1",
   requiredVersion: "0.0.1",
   description: "获取 TMDB 个人相关作品数据（Forward 5折优惠码 LUCKY.5)",
   author: "Evan",
