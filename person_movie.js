@@ -1,4 +1,3 @@
-```javascript
 var WidgetMetadata = {
   id: "TMDB person Movie",
   title: "TMDB个人作品集",
