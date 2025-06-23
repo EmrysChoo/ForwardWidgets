@@ -3,7 +3,7 @@ var WidgetMetadata = {
   title: "TMDB个人作品集",
   version: "1.0.3",
   requiredVersion: "0.0.1",
-  description: "获取 TMDB 个人相关作品数据（Forward 5折码 LUCKY.5)",
+  description: "获取 TMDB 个人相关作品数据",
   author: "Evan", 
   site: "https://github.com/EmrysChoo/ForwardWidgets", 
   cacheDuration: 172800, 
