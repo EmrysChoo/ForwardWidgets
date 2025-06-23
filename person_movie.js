@@ -1,9 +1,9 @@
 var WidgetMetadata = {
   id: "TMDB person Movie",
   title: "TMDB个人作品集",
-  version: "1.0.0",
+  version: "1.0.3",
   requiredVersion: "0.0.1",
-  description: "获取 TMDB 个人相关作品数据",
+  description: "获取 TMDB 个人相关作品数据（Forward 5折优惠码 LUCKY.5)",
   author: "Evan", 
   site: "https://github.com/EmrysChoo/ForwardWidgets", 
   cacheDuration: 172800, 
@@ -201,11 +201,11 @@ async function fetchCredits(personId, language) {
       throw new Error("获取作品数据失败");
     }
 
-    // 统一字段名：mediaType
+    // 统一字段名并处理电视剧特殊字段
     const cast = response.cast?.map(item => ({
       ...item,
       mediaType: item.media_type,
-      releaseDate: item.release_date || item.first_air_date
+      releaseDate: item.release_date || item.first_air_date // ✅ 优先使用 first_air_date
     })) || [];
     
     const crew = response.crew?.map(item => ({
@@ -254,7 +254,7 @@ async function getAllWorks(params = {}) {
     // 合并数据并使用组合键去重
     const allWorksMap = {};
     [...cast, ...crew].forEach((movie, index) => {
-      const uniqueKey = `${movie.id}-${movie.mediaType}`; // ✅ 使用组合键去重
+      const uniqueKey = `${movie.id}-${movie.mediaType}`; // ✅ 使用组合键避免冲突
       if (!allWorksMap[uniqueKey]) {
         allWorksMap[uniqueKey] = {
           ...movie,
