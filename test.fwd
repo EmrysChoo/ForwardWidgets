@@ -1,15 +1,15 @@
 {
-  "title": "A𝓾𝓽𝓽𝓮𝓻𝓯𝓵𝔂 ‘𝓼 𝓦𝓲𝓭𝓰𝓮𝓽𝓼",
-  "description": "1汇集豆瓣、TMDB、IMDB、猫眼和Bangumi的各类榜单",
+  "title": "Evan's Widgets",
+  "description": "TMDB个人作品集",
   "icon": "https://raw.githubusercontent.com/quantumultxx/FW-Widgets/refs/heads/main/icon/icon2.PNG",
   "widgets": [
     {
-      "id": "for2ward.combined.media.lists",
-      "title": "影视榜单",
-      "description": "聚合豆瓣、TMDB、I2MDB和Bangumi的影视动画榜单",
+      "id": "person_movie",
+      "title": "TMDB个人作品集",
+      "description": "获取 TMDB 个人相关作品数据（Forward 5折优惠码 LUCKY.5)",
       "requiredVersion": "0.0.1",
       "version": "1.2.3",
-      "author": "阿米诺2斯",
+      "author": "Evan",
       "url": "https://github.com/EmrysChoo/ForwardWidgets/raw/refs/heads/main/Widgets/person_movie.js"
     }
   ]
