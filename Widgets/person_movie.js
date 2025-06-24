@@ -1,6 +1,6 @@
 WidgetMetadata = {
   id: "person.movie.tmdb",
-  title: "TMDB个人作品集",
+  title: "TMDB人物影视作品",
   version: "1.0.3",
   requiredVersion: "0.0.1",
   description: "获取 TMDB 个人相关作品数据（Forward 5折优惠码 LUCKY.5)",
