@@ -4,7 +4,7 @@
   "icon": "https://raw.githubusercontent.com/quantumultxx/FW-Widgets/refs/heads/main/icon/icon2.PNG",
   "widgets": [
     {
-      "id": "person_movie",
+      "id": "pers1231vie",
       "title": "TMDB个人作品集",
       "description": "获取 TMDB 个人相关作品数据（Forward 5折优惠码 LUCKY.5)",
       "requiredVersion": "0.0.1",
