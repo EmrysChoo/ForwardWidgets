@@ -1,5 +1,5 @@
 WidgetMetadata = {
-  id: "person.movie",
+  id: "person.movie.tmdb",
   title: "TMDB个人作品集",
   version: "1.0.3",
   requiredVersion: "0.0.1",
