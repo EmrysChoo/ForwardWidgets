@@ -5,7 +5,7 @@
   "widgets": [
     {
       "id": "pers1231vie",
-      "title": "TMDB个人作品集",
+      "title": "44333作品集",
       "description": "获取 TMDB 个人相关作品数据",
       "requiredVersion": "0.0.1",
       "version": "1.2.3",
