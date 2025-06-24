@@ -49,7 +49,6 @@ WidgetMetadata = {
             { "title": "徐克", "value": "10725" },
             { "title": "林超贤", "value": "1290668" },
             { "title": "郭帆", "value": "1328370" },
-  // 国际影人
             { "title": "史蒂文·斯皮尔伯格", "value": "488" },
             { "title": "詹姆斯·卡梅隆", "value": "2710" },
             { "title": "克里斯托弗·诺兰", "value": "525" },
@@ -63,7 +62,7 @@ WidgetMetadata = {
             { "title": "杨紫琼", "value": "655" },
             { "title": "凯特·布兰切特", "value": "112" },
             { "title": "丹尼尔·戴·刘易斯", "value": "1584" },
-            { "title": "宋康昊", "value": "1267329" },
+            { "title": "宋康昊", "value": "1267329" }
           ]
         },
         { name: "language", title: "语言", type: "language"， value: "zh-CN" },
