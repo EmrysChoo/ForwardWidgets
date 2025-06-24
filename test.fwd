@@ -1,12 +1,12 @@
 {
-  "title": "Evan ‘𝓼 𝓦𝓲𝓭𝓰𝓮𝓽𝓼",
-  "description": "汇集豆瓣、TMDB、IMDB、猫眼和Bangumi的各类榜单",
+  "title": "Evan's Widgets",
+  "description": "TMDB人物相关作品",
   "icon": "https://assets.vvebo.vip/scripts/icon.png",
   "widgets": [
     {
-      "id": "forward.combined.media.lists",
+      "id": "person_movie",
       "title": "影视榜单",
-      "description": "聚合豆瓣、TMDB、IMDB和Bangumi的影视动画榜单",
+      "description": "TMDB人物相关作品",
       "requiredVersion": "0.0.1",
       "version": "1.2.6",
       "author": "阿米诺斯",
