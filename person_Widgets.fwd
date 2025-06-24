@@ -1,17 +1,16 @@
-
 {
-  "title": "person_Widgets",
-  "description": "获取相关影视作品",
+  "title": "Evan's Widgets",
+  "description": "TMDB人物相关作品",
   "icon": "https://assets.vvebo.vip/scripts/icon.png",
   "widgets": [
     {
       "id": "person_movie",
-      "title": "TMDB个人作品集",
-      "description": "获取 TMDB 个人相关作品数据（Forward 5折优惠码 LUCKY.5)",
+      "title": "影视榜单",
+      "description": "TMDB人物相关作品",
       "requiredVersion": "0.0.1",
       "version": "1.1.2",
       "author": "Evan",
-      "url": "https://github.com/EmrysChoo/ForwardWidgets/raw/refs/heads/main/Widgets/person_movie.js"  
+      "url": "https://github.com/EmrysChoo/ForwardWidgets/raw/refs/heads/main/Widgets/person_movie.js"
     }
   ]
 }
