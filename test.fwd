@@ -9,7 +9,7 @@
       "description": "获取 TMDB 个人相关作品数据（Forward 5折优惠码 LUCKY.5)",
       "requiredVersion": "0.0.1",
       "version": "1.2.3",
-      "author": "Evan",
+      "author": "Evan111",
       "url": "https://github.com/EmrysChoo/ForwardWidgets/raw/refs/heads/main/Widgets/person_movie.js"
     }
   ]
