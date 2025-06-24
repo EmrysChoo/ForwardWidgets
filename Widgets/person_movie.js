@@ -65,7 +65,7 @@ WidgetMetadata = {
             { title: "宋康昊", value: "1267329" }
           ]
         },
-        { name: "language", title: "语言", type: "language"， value: "zh-CN" },
+        { name: "language", title: "语言", type: "language", value: "zh-CN" },
         {
           name: "type",
           title: "类型",
@@ -83,7 +83,7 @@ WidgetMetadata = {
           type: "enumeration",
           enumOptions: [
             { title: "发行日期降序", value: "release_date.desc" },
-            { title: "评分降序", value: "vote_average.desc" }，
+            { title: "评分降序", value: "vote_average.desc" },
             { title: "热门降序", value: "popularity.desc" }
           ],
           value: "popularity.desc"
@@ -120,7 +120,7 @@ WidgetMetadata = {
   module.params = JSON.parse(JSON.stringify(WidgetMetadata.modules[0].params));
 });
 
-// 基础获取TMDB人员作品方法，使用 combined_credits 接口
+// 基础获取TMDB人员作品方法,使用 combined_credits 接口
 async function fetchCredits(personId, language) {
   var api = `person/${personId}/combined_credits`;
   var response = await Widget.tmdb.get(api, { params: { language: language || "zh-CN" } });
