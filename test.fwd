@@ -1,1 +1,16 @@
-
+{
+  "title": "A𝓾𝓽𝓽𝓮𝓻𝓯𝓵𝔂 ‘𝓼 𝓦𝓲𝓭𝓰𝓮𝓽𝓼",
+  "description": "1汇集豆瓣、TMDB、IMDB、猫眼和Bangumi的各类榜单",
+  "icon": "https://raw.githubusercontent.com/quantumultxx/FW-Widgets/refs/heads/main/icon/icon2.PNG",
+  "widgets": [
+    {
+      "id": "for2ward.combined.media.lists",
+      "title": "影视榜单",
+      "description": "聚合豆瓣、TMDB、I2MDB和Bangumi的影视动画榜单",
+      "requiredVersion": "0.0.1",
+      "version": "1.2.3",
+      "author": "阿米诺2斯",
+      "url": "https://github.com/EmrysChoo/ForwardWidgets/raw/refs/heads/main/Widgets/person_movie.js"
+    }
+  ]
+}
