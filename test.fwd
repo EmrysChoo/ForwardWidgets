@@ -1,15 +1,15 @@
 {
-  "title": "Ev11anidgets",
-  "description": "TMDB个人作品集",
-  "icon": "https://raw.githubusercontent.com/quantumultxx/FW-Widgets/refs/heads/main/icon/icon2.PNG",
+  "title": "Evan ‘𝓼 𝓦𝓲𝓭𝓰𝓮𝓽𝓼",
+  "description": "汇集豆瓣、TMDB、IMDB、猫眼和Bangumi的各类榜单",
+  "icon": "https://assets.vvebo.vip/scripts/icon.png",
   "widgets": [
     {
-      "id": "pers1231vie",
-      "title": "44333作品集",
-      "description": "获取 TMDB 个人相关作品数据",
+      "id": "forward.combined.media.lists",
+      "title": "影视榜单",
+      "description": "聚合豆瓣、TMDB、IMDB和Bangumi的影视动画榜单",
       "requiredVersion": "0.0.1",
-      "version": "1.2.3",
-      "author": "Evan111",
+      "version": "1.2.6",
+      "author": "阿米诺斯",
       "url": "https://github.com/EmrysChoo/ForwardWidgets/raw/refs/heads/main/Widgets/person_movie.js"
     }
   ]
