@@ -6,7 +6,7 @@
     {
       "id": "person_movie",
       "title": "TMDB人物相关作品",
-      "description": "TMDB人物相关作品",
+      "description": "TMDB人物相关作品(Forward 5折优惠码 LUCKY.5)",
       "requiredVersion": "0.0.1",
       "version": "1.1.2",
       "author": "Evan",
