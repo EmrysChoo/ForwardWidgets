@@ -8,7 +8,7 @@
       "title": "TMDB人物影视作品",
       "description": "TMDB人物相关作品",
       "requiredVersion": "0.0.1",
-      "version": "1.1.2",
+      "version": "1.0.2",
       "author": "Evan",
       "url": "https://github.com/EmrysChoo/ForwardWidgets/raw/refs/heads/main/Widgets/person_movie.js"
     }
