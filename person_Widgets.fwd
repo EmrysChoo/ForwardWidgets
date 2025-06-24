@@ -4,7 +4,7 @@
   "icon": "https://assets.vvebo.vip/scripts/icon.png",
   "widgets": [
     {
-      "id": "person_movie.tmdb",
+      "id": "person.movie.tmdb",
       "title": "TMDB人物影视作品",
       "description": "获取 TMDB 的榜单数据",
       "requiredVersion": "0.0.1",
