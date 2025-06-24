@@ -8,8 +8,8 @@
       "title": "影视榜单",
       "description": "TMDB人物相关作品",
       "requiredVersion": "0.0.1",
-      "version": "1.2.6",
-      "author": "阿米诺斯",
+      "version": "1.1.2",
+      "author": "Evan",
       "url": "https://github.com/EmrysChoo/ForwardWidgets/raw/refs/heads/main/Widgets/person_movie.js"
     }
   ]
