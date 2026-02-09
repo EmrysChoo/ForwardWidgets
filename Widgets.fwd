@@ -67,15 +67,6 @@
       "url": "https://raw.githubusercontent.com/bemarkt/scripts/refs/heads/master/provider/Forward/widgets/vod.js"
     },
     {
-      "id": "tv_live",
-      "title": "电视台",
-      "description": "获取热门电视直播频道",
-      "requiredVersion": "0.0.1",
-      "version": "1.1.5",
-      "author": "两块",
-      "url": "https://raw.githubusercontent.com/2kuai/ForwardWidgets/refs/heads/main/Widgets/TvLive.js"
-    },
-    {
       "id": "ti.bemarkt.podcast",
       "title": "Podcast",
       "description": "获取 RSS 播客数据",
@@ -128,42 +119,6 @@
       "version": "1.1.0",
       "author": "两块",
       "url": "https://github.com/2kuai/ForwardWidgets/raw/refs/heads/main/Widgets/jpyy.js"
-    },
-    {
-      "id": "movie_paradise",
-      "title": "在线影院",
-      "description": "获取在线电影、电视剧、动漫、综艺和短剧",
-      "requiredVersion": "0.0.1",
-      "version": "1.0.0",
-      "author": "两块",
-      "url": "https://raw.githubusercontent.com/2kuai/ForwardWidgets/refs/heads/main/Widgets/MovieParadise.js"
-    },
-    {
-      "id": "cloud_cinema",
-      "title": "云端影院",
-      "description": "☁️ YUNDUAN MOvies",
-      "requiredVersion": "0.0.1",
-      "version": "1.0.0",
-      "author": "Discount Code：VEUS",
-      "url": "https://raw.githubusercontent.com/2kuai/ForwardWidgets/refs/heads/main/Widgets/CloudCinema.js"
-    },
-    {
-      "id": "dytt_vod",
-      "title": "电影天堂",
-      "description": "获取在线电影、电视剧、动漫、综艺和短剧",
-      "requiredVersion": "0.0.1",
-      "version": "1.0.0",
-      "author": "两块",
-      "url": "https://raw.githubusercontent.com/2kuai/ForwardWidgets/refs/heads/main/Widgets/dytt.js"
-    },
-    {
-      "id": "ddys_vod",
-      "title": "低端影视",
-      "description": "获取在线电影、电视剧、动画",
-      "requiredVersion": "0.0.1",
-      "version": "1.0.0",
-      "author": "两块",
-      "url": "https://raw.githubusercontent.com/2kuai/ForwardWidgets/refs/heads/main/Widgets/ddys.js"
     },
     {
       "id": "Bitch",
