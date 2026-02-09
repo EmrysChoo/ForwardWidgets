@@ -3,24 +3,6 @@
   "description": "自用合集",
   "icon": "https://assets.vvebo.vip/scripts/icon.png",
   "widgets": [
-{
-      "id": "yuanqi.wallpaper",
-      "title": "🖼️ ✨wallpaper",
-      "description": "✨ Dynamic wallpaper For Topshelf",
-      "requiredVersion": "0.0.1",
-      "version": "1.1.0",
-      "author": "VEUS",
-      "url": "https://raw.githubusercontent.com/ocd0711/forward_module/refs/heads/master/other/wallpaper.js",
-    },
-    {
-      "id": "xtream_api_en",
-      "title": "Xtream API Live",
-      "description": "Fetch live channels via official Xtream-Codes REST API with keyword search",
-      "requiredVersion": "0.0.1",
-      "version": "2.1.2",
-      "author": "VEUS",
-      "url": "https://raw.githubusercontent.com/ocd0711/forward_module/refs/heads/master/other/xtream_api.js",
-    },
     {
       "id": "forward.combined.media.lists",
       "title": "影视榜单",
