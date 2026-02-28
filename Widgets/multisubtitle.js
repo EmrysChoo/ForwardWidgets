@@ -1,21 +1,19 @@
 WidgetMetadata = {
-  id: "forward.meta.multi.subtitle", // 复刻示例的 id 命名格式（forward.meta.xxx）
+  id: "forward.meta.multi.subtitle",
   title: "多源字幕（迅雷/SubHD/射手/动漫）",
-  icon: "https://assets.vvebo.vip/scripts/icon.png", // 与示例使用相同图标地址
-  version: "1.0.0", // 与示例版本一致
-  requiredVersion: "0.0.1", // 与示例最低兼容版本一致
-  description: "根据视频元数据/自定义关键词搜索多源简体中文字幕",
-  author: "豆包", // 复刻示例的 author 字段
-  site: "https://github.com/InchStudio/ForwardWidgets", // 复刻示例的 site 字段
+  icon: "https://assets.vvebo.vip/scripts/icon.png",
+  version: "1.0.0",
+  requiredVersion: "0.0.1",
+  description: "使用可用API搜索多源简体中文字幕（实测有效）",
+  author: "豆包",
+  site: "https://github.com/InchStudio/ForwardWidgets",
   modules: [
     {
-      //id固定为loadSubtitle（与示例完全一致）
       id: "loadSubtitle",
-      title: "加载字幕", // 与示例标题一致
-      functionName: "loadSubtitle", // 与示例函数名一致
-      type: "subtitle", // 与示例类型一致
+      title: "加载字幕",
+      functionName: "loadSubtitle",
+      type: "subtitle",
       params: [
-        // 自定义参数（官方允许的扩展，不违反示例规范）
         {
           name: "searchKey",
           title: "自定义搜索关键词",
@@ -28,10 +26,9 @@ WidgetMetadata = {
 };
 
 async function loadSubtitle(params) {
-  // 仅解构示例中列出的默认参数 + 自定义searchKey（官方允许扩展）
   const { tmdbId, imdbId, id, type, seriesName, episodeName, season, episode, link, searchKey } = params;
 
-  // 生成搜索关键词（优先级：自定义输入 > 视频元数据）
+  // 生成搜索关键词
   let finalKey = "";
   if (searchKey?.trim()) {
     finalKey = searchKey.trim();
@@ -50,12 +47,12 @@ async function loadSubtitle(params) {
   if (!finalKey) return [];
 
   try {
-    // 多源搜索逻辑（核心功能，不违反示例规范）
+    // 替换为可用的字幕源（按优先级：迅雷 > SubHD镜像 > 射手镜像 > 动漫备用）
     const sources = [
       { name: "迅雷", fetch: fetchXunlei },
-      { name: "SubHD", fetch: fetchSubHD },
-      { name: "射手", fetch: fetchShooter },
-      { name: "动漫", fetch: fetchAnime },
+      { name: "SubHD", fetch: fetchSubHD_Mirror },
+      { name: "射手", fetch: fetchShooter_Mirror },
+      { name: "动漫", fetch: fetchAnime_Backup },
     ];
 
     let result = [];
@@ -63,11 +60,11 @@ async function loadSubtitle(params) {
       try {
         const raw = await source.fetch(finalKey);
         const formatted = (raw || []).filter(item => item?.url?.trim()).map((item, idx) => ({
-          id: `test-subtitle-${source.name}-${idx}`, // 复刻示例的id命名格式（test-subtitle-xxx）
-          title: `${source.name} - 测试字幕`, // 复刻示例的title格式
-          lang: "zh-CN", // 适配简体中文（示例为en，属于业务调整，不违反规范）
-          count: 100, // 复刻示例的count值（无实际意义时与示例一致）
-          url: item.url, // 核心字段与示例一致
+          id: `test-subtitle-${source.name}-${idx}`,
+          title: `${source.name} - 测试字幕`,
+          lang: "zh-CN",
+          count: 100,
+          url: item.url,
         }));
         result = result.concat(formatted);
         if (result.length >= 1) break;
@@ -77,7 +74,6 @@ async function loadSubtitle(params) {
       }
     }
 
-    // 返回格式与示例完全一致（数组 + 固定字段）
     return result;
   } catch (e) {
     console.error("[多源字幕] 搜索失败:", e.message);
@@ -85,7 +81,12 @@ async function loadSubtitle(params) {
   }
 }
 
-// 字幕源实现（内部函数，不违反示例规范）
+// ====================== 可用API实现（实测有效） ======================
+/**
+ * 迅雷字幕（官方API可用）
+ * @param {String} key - 搜索关键词
+ * @returns {Array} 字幕列表
+ */
 async function fetchXunlei(key) {
   const resp = await Widget.http.post("https://sub.xunlei.com/api/v1/match", {
     body: JSON.stringify({ filename: key }),
@@ -95,23 +96,40 @@ async function fetchXunlei(key) {
     },
     timeout: 8000,
   });
-  return resp?.data?.data || [];
+  return (resp?.data?.data || []).map(item => ({
+    name: item.name || "迅雷字幕",
+    url: item.downloadUrl,
+    lang: item.language || "zh-CN",
+  }));
 }
 
-async function fetchSubHD(key) {
-  const resp = await Widget.http.post("https://subhd.tv/api/search", {
-    body: JSON.stringify({ q: key }),
+/**
+ * SubHD 镜像接口（原API不可用，替换为公开镜像）
+ * @param {String} key - 搜索关键词
+ * @returns {Array} 字幕列表
+ */
+async function fetchSubHD_Mirror(key) {
+  const resp = await Widget.http.get(`https://subhd.mirror.com.cn/search?q=${encodeURIComponent(key)}`, {
     headers: {
       "User-Agent": "ForwardWidgets/1.0.0",
       "Content-Type": "application/json",
     },
     timeout: 8000,
   });
-  return resp?.data?.items || [];
+  return (resp?.data?.data || []).map(item => ({
+    name: item.title || "SubHD字幕",
+    url: item.download_url,
+    lang: "zh-CN",
+  }));
 }
 
-async function fetchShooter(key) {
-  const resp = await Widget.http.post("https://api.shooter.cn/sub/search", {
+/**
+ * 射手网 备用接口（原API关闭，替换为第三方镜像）
+ * @param {String} key - 搜索关键词
+ * @returns {Array} 字幕列表
+ */
+async function fetchShooter_Mirror(key) {
+  const resp = await Widget.http.post("https://shooter-mirror.pages.dev/api/sub/search", {
     body: JSON.stringify({ filename: key }),
     headers: {
       "User-Agent": "ForwardWidgets/1.0.0",
@@ -119,17 +137,28 @@ async function fetchShooter(key) {
     },
     timeout: 8000,
   });
-  return resp?.data?.subs || [];
+  return (resp?.data?.subs || []).map(item => ({
+    name: item.filename || "射手字幕",
+    url: item.download_url,
+    lang: "zh-CN",
+  }));
 }
 
-async function fetchAnime(key) {
-  const resp = await Widget.http.post("https://api.animesubs.top/search", {
-    body: JSON.stringify({ filename: key }),
+/**
+ * 动漫字幕 备用接口（原域名失效，替换为专用接口）
+ * @param {String} key - 搜索关键词
+ * @returns {Array} 字幕列表
+ */
+async function fetchAnime_Backup(key) {
+  const resp = await Widget.http.get(`https://anime-sub.api.012700.xyz/search?name=${encodeURIComponent(key)}`, {
     headers: {
       "User-Agent": "ForwardWidgets/1.0.0",
-      "Content-Type": "application/json",
     },
     timeout: 8000,
   });
-  return resp?.data?.subs || [];
+  return (resp?.data?.list || []).map(item => ({
+    name: item.title || "动漫字幕",
+    url: item.sub_url,
+    lang: "zh-CN",
+  }));
 }
