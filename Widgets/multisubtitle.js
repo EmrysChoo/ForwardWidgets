@@ -25,67 +25,72 @@ WidgetMetadata = {
   ],
 };
 
-// 迅雷官方接口规范配置（核心：严格匹配请求规则）
+// 迅雷官方接口规范配置（针对 400 错误优化了请求方式）
 const XUNLEI_CONFIG = {
   url: "https://api-shoulei-ssl.xunlei.com/oracle/subtitle",
   headers: {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    "Referer": "https://www.xunlei.com/",
-    "Content-Type": "application/json;charset=UTF-8",
+    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+    "Referer": "https://m.xunlei.com/",
     "Accept": "application/json, text/plain, */*",
-    "Origin": "https://www.xunlei.com",
     "Connection": "keep-alive"
   }
 };
 
 async function loadSubtitle(params) {
-  const { searchKey, link, seriesName, season, episode, type } = params;
+  const { searchKey, link, seriesName, type } = params;
 
-  // 1. 生成符合接口要求的关键词（无特殊字符、长度≤20）
-  let key = searchKey?.trim()?.replace(/[^\w\s\u4e00-\u9fa5]/g, "") || "";
+  // 1. 生成符合接口要求的关键词
+  let key = searchKey?.trim() || "";
   if (!key) {
     if (type === "tv" && seriesName) {
-      key = seriesName.substring(0, 20); // 限制长度，避免参数超限
+      key = seriesName;
     } else if (link) {
-      key = link.split('/').pop().split('.')[0].substring(0, 20);
+      key = link.split('/').pop().split('.')[0];
     }
   }
   if (!key) return [];
 
   try {
-    // 2. 严格按官方规范调用接口（POST + JSON Body）
-    const resp = await Widget.http.post(
-      XUNLEI_CONFIG.url,
-      {
-        // 修复 400 错误：同时传入 data 和 body，兼容不同底层 HTTP 库 (Axios/Fetch) 的规范
-        data: { keyword: key }, 
-        body: JSON.stringify({ keyword: key }), 
-        headers: XUNLEI_CONFIG.headers,
-        timeout: 10000,
-        rejectUnauthorized: false, // 兼容Swift TLS校验
-        followRedirects: true // 跟随接口重定向
-      }
-    );
+    // 2. 核心修复：改用 GET 请求并手动拼接 URL 参数
+    // 400 错误通常是因为 POST Body 无法被服务器解析，GET 传参是目前最兼容的方式
+    const targetUrl = `${XUNLEI_CONFIG.url}?keyword=${encodeURIComponent(key)}`;
 
-    // 3. 适配接口返回格式（解决解析失败问题）
+    const resp = await Widget.http.get(targetUrl, {
+      headers: XUNLEI_CONFIG.headers,
+      timeout: 10000,
+      rejectUnauthorized: false
+    });
+
+    // 3. 适配接口返回格式
     let subs = [];
-    // 兼容接口所有合法返回格式
-    if (Array.isArray(resp?.data)) {
-      subs = resp.data;
-    } else if (resp?.data?.data?.subtitles) {
-      subs = resp.data.data.subtitles;
-    } else if (resp?.data?.list) {
-      subs = resp.data.list;
+    const data = resp?.data;
+    
+    // 穷举迅雷 API 可能返回的所有列表字段名
+    if (Array.isArray(data)) {
+      subs = data;
+    } else if (data?.data?.subtitles) {
+      subs = data.data.subtitles;
+    } else if (data?.data?.list) {
+      subs = data.data.list;
+    } else if (data?.list) {
+      subs = data.list;
+    } else if (data?.sublist) {
+      subs = data.sublist;
     }
 
-    // 4. 返回所有字幕资源（让你手动选择）
-    return subs.filter(item => item?.url?.startsWith('http')).map((item, idx) => ({
-      id: `xl-sub-${idx}`,
-      title: item.title || item.name || "简体中文字幕",
-      lang: "zh-CN",
-      count: 100,
-      url: item.url.trim()
-    }));
+    // 4. 返回标准格式字幕
+    return subs
+      .filter(item => {
+        const u = item?.url || item?.surl;
+        return u && typeof u === 'string' && u.startsWith('http');
+      })
+      .map((item, idx) => ({
+        id: `xl-sub-${idx}`,
+        title: item.title || item.name || item.sname || "迅雷中文字幕",
+        lang: "zh-CN",
+        count: 100,
+        url: (item.url || item.surl).trim()
+      }));
   } catch (e) {
     console.error("迅雷接口调用失败:", e.message);
     return []; 
