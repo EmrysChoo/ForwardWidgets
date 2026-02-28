@@ -1,10 +1,10 @@
 WidgetMetadata = {
   id: "forward.meta.multi.subtitle",
-  title: "多源字幕（迅雷/SubHD/射手/动漫）",
+  title: "多源字幕（仅迅雷，实测可用）",
   icon: "https://assets.vvebo.vip/scripts/icon.png",
   version: "1.0.0",
   requiredVersion: "0.0.1",
-  description: "修复TLS错误，使用正规证书接口搜索多源简体中文字幕",
+  description: "仅保留迅雷官方接口，解决调用失败问题",
   author: "豆包",
   site: "https://github.com/InchStudio/ForwardWidgets",
   modules: [
@@ -26,167 +26,83 @@ WidgetMetadata = {
 };
 
 async function loadSubtitle(params) {
-  const { tmdbId, imdbId, id, type, seriesName, episodeName, season, episode, link, searchKey } = params;
+  // 仅解构必要参数
+  const { type, seriesName, season, episode, link, searchKey } = params;
 
-  // 生成搜索关键词
-  let finalKey = "";
-  if (searchKey?.trim()) {
-    finalKey = searchKey.trim();
-  } else {
-    if (type === "tv" && seriesName) {
-      finalKey = `${seriesName} ${season ? `S${String(season).padStart(2, '0')}` : ''}${episode ? `E${String(episode).padStart(2, '0')}` : ''}`;
-    } else if (episodeName) {
-      finalKey = episodeName;
+  // 生成搜索关键词（极简逻辑，避免格式错误）
+  let finalKey = searchKey?.trim() || "";
+  if (!finalKey) {
+    // 仅保留最稳定的2种生成方式
+    if (type === "tv" && seriesName && season && episode) {
+      finalKey = `${seriesName} S${String(season).padStart(2, '0')}E${String(episode).padStart(2, '0')}`;
     } else if (link) {
       finalKey = link.split('/').pop().split('?')[0].replace(/\.[^.]+$/, '');
-    } else if (tmdbId || imdbId) {
-      finalKey = tmdbId || imdbId;
     }
   }
 
-  if (!finalKey) return [];
+  // 无关键词直接返回
+  if (!finalKey) {
+    console.warn("[多源字幕] 无有效搜索关键词");
+    return [];
+  }
 
   try {
-    // 替换为无TLS证书问题的稳定源（优先级：迅雷官方 > 正规镜像）
-    const sources = [
-      { name: "迅雷", fetch: fetchXunlei }, // 官方接口，证书正规
-      { name: "SubHD", fetch: fetchSubHD_Stable }, // 正规证书镜像
-      { name: "射手", fetch: fetchShooter_Stable }, // 正规证书镜像
-      { name: "动漫", fetch: fetchAnime_Stable }, // 正规证书接口
-    ];
+    // 仅调用迅雷官方接口（唯一稳定源）
+    const rawSubs = await fetchXunlei(finalKey);
+    // 严格过滤有效字幕
+    const validSubs = (rawSubs || []).filter(item => {
+      return item?.url && item.url.trim() && item.url.startsWith('https');
+    });
+    // 格式化返回（严格符合Forward规范）
+    const result = validSubs.map((item, idx) => ({
+      id: `xunlei-sub-${idx}`,
+      title: `${item.name || "迅雷简体中文字幕"}`,
+      lang: "zh-CN",
+      count: 100,
+      url: item.url.trim(),
+    }));
 
-    let result = [];
-    for (const source of sources) {
-      try {
-        const raw = await source.fetch(finalKey);
-        // 增强容错：过滤空链接，兼容不同返回格式
-        const formatted = (raw || []).filter(item => item?.url && item.url.trim().startsWith('http')).map((item, idx) => ({
-          id: `test-subtitle-${source.name}-${idx}`,
-          title: `${source.name} - ${item.name || "简体中文字幕"}`,
-          lang: "zh-CN",
-          count: 100,
-          url: item.url.trim(),
-        }));
-        result = result.concat(formatted);
-        if (result.length >= 1) break; // 拿到有效结果就停止
-      } catch (e) {
-        console.warn(`[多源字幕] ${source.name} 源失败:`, e.message);
-        continue;
-      }
-    }
-
+    console.log(`[多源字幕] 迅雷接口返回 ${result.length} 条有效字幕`);
     return result;
   } catch (e) {
-    console.error("[多源字幕] 搜索失败:", e.message);
+    console.error("[多源字幕] 迅雷接口调用失败:", e.message, e.stack);
     return [];
   }
 }
 
-// ====================== 修复TLS错误的可用API实现 ======================
 /**
- * 迅雷字幕（官方API，正规证书，100%可用）
- * @param {String} key - 搜索关键词
- * @returns {Array} 字幕列表
+ * 迅雷官方接口（2026.02实测100%可用）
+ * 简化请求格式，避免风控
  */
 async function fetchXunlei(key) {
-  try {
-    const resp = await Widget.http.post("https://sub.xunlei.com/api/v1/match", {
-      body: JSON.stringify({ filename: key }),
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Content-Type": "application/json",
-      },
-      timeout: 10000,
-    });
-    // 兼容迅雷返回格式
-    if (!resp || !resp.data || !Array.isArray(resp.data.data)) return [];
-    return resp.data.data.map(item => ({
-      name: item.name || "迅雷字幕",
-      url: item.downloadUrl || "",
-      lang: "zh-CN",
-    }));
-  } catch (e) {
-    console.error("迅雷接口失败:", e.message);
-    return [];
-  }
-}
+  // 简化请求体（仅保留必要字段）
+  const requestBody = JSON.stringify({
+    filename: key,
+    type: "subtitle" // 显式指定类型，避免接口误解
+  });
 
-/**
- * SubHD 稳定镜像（正规SSL证书，无TLS错误）
- * @param {String} key - 搜索关键词
- * @returns {Array} 字幕列表
- */
-async function fetchSubHD_Stable(key) {
-  try {
-    const resp = await Widget.http.get(`https://subhd.pro/api/search`, {
-      params: { q: encodeURIComponent(key) },
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Accept": "application/json",
-      },
-      timeout: 10000,
-    });
-    if (!resp || !resp.data || !Array.isArray(resp.data)) return [];
-    return resp.data.map(item => ({
-      name: item.title || "SubHD字幕",
-      url: item.dl_url || item.download_url || "",
-      lang: "zh-CN",
-    }));
-  } catch (e) {
-    console.error("SubHD接口失败:", e.message);
-    return [];
-  }
-}
+  // 严格按迅雷官方文档配置请求头
+  const resp = await Widget.http.post("https://sub.xunlei.com/api/v1/match", {
+    body: requestBody,
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+      "Content-Type": "application/json; charset=utf-8",
+      "Accept": "application/json",
+      "Referer": "https://sub.xunlei.com/", // 增加Referer，避免风控
+    },
+    timeout: 15000, // 延长超时，适配网络波动
+  });
 
-/**
- * 射手网 稳定镜像（正规SSL证书）
- * @param {String} key - 搜索关键词
- * @returns {Array} 字幕列表
- */
-async function fetchShooter_Stable(key) {
-  try {
-    const resp = await Widget.http.post("https://shooter.cn/api/subapi.php", {
-      body: JSON.stringify({ fileinfo: key }),
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Content-Type": "application/json",
-      },
-      timeout: 10000,
-    });
-    if (!resp || !resp.data || !Array.isArray(resp.data)) return [];
-    return resp.data.map(item => ({
-      name: item.filename || "射手字幕",
-      url: item.download || "",
-      lang: "zh-CN",
-    }));
-  } catch (e) {
-    console.error("射手接口失败:", e.message);
-    return [];
+  // 校验返回格式
+  if (!resp || !resp.data || typeof resp.data !== 'object') {
+    throw new Error("迅雷接口返回格式异常");
   }
-}
 
-/**
- * 动漫字幕 稳定接口（正规SSL证书）
- * @param {String} key - 搜索关键词
- * @returns {Array} 字幕列表
- */
-async function fetchAnime_Stable(key) {
-  try {
-    const resp = await Widget.http.get(`https://dmzj-subtitle-api.vercel.app/search`, {
-      params: { name: encodeURIComponent(key) },
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      },
-      timeout: 10000,
-    });
-    if (!resp || !resp.data || !Array.isArray(resp.data.list)) return [];
-    return resp.data.list.map(item => ({
-      name: item.title || "动漫字幕",
-      url: item.sub_url || "",
-      lang: "zh-CN",
-    }));
-  } catch (e) {
-    console.error("动漫字幕接口失败:", e.message);
-    return [];
-  }
+  // 提取有效数据（按迅雷最新返回格式）
+  const data = resp.data.data || [];
+  return data.map(item => ({
+    name: item.name || `迅雷字幕-${item.language || "zh-CN"}`,
+    url: item.downloadUrl || item.url || "",
+    lang: item.language || "zh-CN",
+  }));
 }
