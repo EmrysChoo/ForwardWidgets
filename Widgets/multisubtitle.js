@@ -57,7 +57,9 @@ async function loadSubtitle(params) {
     const resp = await Widget.http.post(
       XUNLEI_CONFIG.url,
       {
-        body: JSON.stringify({ keyword: key }), // 参数必须放Body，非URL
+        // 修复 400 错误：同时传入 data 和 body，兼容不同底层 HTTP 库 (Axios/Fetch) 的规范
+        data: { keyword: key }, 
+        body: JSON.stringify({ keyword: key }), 
         headers: XUNLEI_CONFIG.headers,
         timeout: 10000,
         rejectUnauthorized: false, // 兼容Swift TLS校验
@@ -86,6 +88,6 @@ async function loadSubtitle(params) {
     }));
   } catch (e) {
     console.error("迅雷接口调用失败:", e.message);
-    return [];
+    return []; 
   }
 }
