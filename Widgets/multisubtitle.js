@@ -1,8 +1,8 @@
 WidgetMetadata = {
   id: "forward.meta.xunlei.subtitle",
   title: "迅雷字幕",
-  icon: "https://assets.vvebo.vip/scripts/icon.png",
-  version: "1.0.0",
+  icon: "https://assets.vunlei.com/favicon.ico",
+  version: "2.0.0",
   requiredVersion: "0.0.1",
   description: "迅雷字幕搜索",
   author: "豆包",
@@ -18,47 +18,48 @@ WidgetMetadata = {
           name: "searchKey",
           title: "搜索关键词",
           type: "input",
-          placeholder: "",
-        },
-      ],
-    },
-  ],
+          placeholder: ""
+        }
+      ]
+    }
+  ]
 };
 
-// 迅雷哈希匹配接口（无地域限制，100%可用）
-const XUNLEI_HASH_API = "http://sub.xmp.sandai.net:8000/subxl/";
-
 async function loadSubtitle(params) {
-  const { link, searchKey } = params;
+  const { searchKey, link, seriesName, season, episode, type } = params;
 
-  // 核心：从视频链接提取文件名，生成简易哈希（迅雷兼容）
-  let fileName = "";
-  if (searchKey?.trim()) {
-    fileName = searchKey.trim();
-  } else if (link) {
-    fileName = link.split('/').pop().split('?')[0];
+  let key = searchKey?.trim() || "";
+
+  if (!key) {
+    if (type === "tv" && seriesName && season && episode) {
+      key = `${seriesName} S${String(season).padStart(2, '0')}E${String(episode).padStart(2, '0')}`;
+    } else if (link) {
+      key = link.split('/').pop().split('?')[0].replace(/\.[^.]+$/, '');
+    }
   }
 
-  if (!fileName) return [];
+  if (!key) return [];
 
   try {
-    // 生成迅雷兼容的CID（简易版，无需计算真实哈希）
-    const cid = fileName.replace(/[^a-zA-Z0-9]/g, "").substring(0, 16);
-    // 调用哈希匹配接口（HTTP，无TLS/地域限制）
-    const resp = await Widget.http.get(`${XUNLEI_HASH_API}${cid}.json`, {
-      timeout: 10000,
+    const resp = await Widget.http.get("https://api-shoulei-ssl.xunlei.com/oracle/subtitle", {
+      params: { keyword: key },
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+        "Referer": "https://www.xunlei.com"
+      },
+      timeout: 10000
     });
 
-    const subs = resp?.data?.subtitles || [];
-    return subs.filter(s => s?.url).map((item, idx) => ({
-      id: `xl-sub-${idx}`,
-      title: item.name || "简体中文字幕",
+    const list = resp?.data || [];
+
+    return list.filter(item => item?.url).map((item, idx) => ({
+      id: "xl-sub-" + idx,
+      title: item.title || "字幕",
       lang: "zh-CN",
       count: 100,
-      url: item.url,
+      url: item.url
     }));
   } catch (e) {
-    console.error("迅雷字幕加载失败:", e.message);
     return [];
   }
 }
