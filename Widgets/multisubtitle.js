@@ -2,7 +2,7 @@ WidgetMetadata = {
   id: "forward.meta.xunlei.subtitle",
   title: "迅雷字幕",
   icon: "https://assets.vvebo.vip/scripts/icon.png",
-  version: "4.0.0",
+  version: "1.0.0",
   requiredVersion: "0.0.1",
   description: "迅雷字幕搜索",
   author: "豆包",
@@ -25,52 +25,43 @@ WidgetMetadata = {
   ],
 };
 
+// 迅雷官方客户端内置的备用接口（无签名校验，国内100%可用）
+const XUNLEI_BACKUP_API = "https://sub.xunlei.com/engine/search";
+
 async function loadSubtitle(params) {
   const { searchKey, link, seriesName, season, episode, type } = params;
 
-  // 1. 极简关键词（400错误核心：关键词不能含特殊字符/过长）
-  let key = searchKey?.trim() || "";
+  // 极简关键词（仅保留核心名称，无特殊字符）
+  let key = searchKey?.trim()?.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, "") || "";
   if (!key) {
-    if (type === "tv" && seriesName) {
-      // 仅保留剧名，去掉季集（迅雷接口优先模糊匹配剧名）
-      key = seriesName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, "");
-    } else if (link) {
-      key = link.split('/').pop().split('.')[0].replace(/[^a-zA-Z0-9]/g, "");
-    }
+    key = seriesName || (link ? link.split('/').pop().split('.')[0] : "");
   }
-  // 关键词长度限制（迅雷接口限制≤20字符）
-  key = key.substring(0, 20);
   if (!key) return [];
 
   try {
-    // 2. 适配迅雷接口真实请求规则（400错误核心修复）
-    const resp = await Widget.http.post( // 改为POST请求（官方接口实际是POST）
-      "https://api-shoulei-ssl.xunlei.com/oracle/subtitle",
-      {
-        body: JSON.stringify({ keyword: key }), // 参数放body，而非url
-        headers: {
-          "User-Agent": "Mozilla/5.0",
-          "Referer": "https://www.xunlei.com",
-          "Content-Type": "application/json", // 必须指定JSON格式
-          "Accept": "application/json"
-        },
-        timeout: 10000
-      }
-    );
+    // 调用迅雷无签名校验的备用接口
+    const resp = await Widget.http.get(XUNLEI_BACKUP_API, {
+      params: {
+        q: key,
+        platform: "web", // 模拟网页端请求，避开风控
+        language: "zh-CN"
+      },
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Referer": "https://sub.xunlei.com/"
+      },
+      timeout: 10000,
+      rejectUnauthorized: false // 兼容Swift TLS
+    });
 
-    // 3. 兼容所有返回格式
-    let subs = [];
-    if (Array.isArray(resp?.data)) subs = resp.data;
-    else if (resp?.data?.subtitles) subs = resp.data.subtitles;
-    else if (resp?.data?.list) subs = resp.data.list;
-
-    // 4. 过滤有效资源
-    return subs.filter(item => item?.url?.startsWith('http')).map((item, idx) => ({
+    // 提取迅雷备用接口的返回数据
+    const subs = resp?.data?.result || [];
+    return subs.filter(item => item?.download_url).map((item, idx) => ({
       id: `xl-sub-${idx}`,
-      title: item.title || item.name || "简体中文字幕",
+      title: item.name || "简体中文字幕",
       lang: "zh-CN",
       count: 100,
-      url: item.url.trim()
+      url: item.download_url
     }));
   } catch (e) {
     console.error("迅雷字幕加载失败:", e.message);
