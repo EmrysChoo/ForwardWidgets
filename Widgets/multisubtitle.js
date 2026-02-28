@@ -4,7 +4,7 @@ WidgetMetadata = {
   icon: "https://assets.vvebo.vip/scripts/icon.png",
   version: "1.0.0",
   requiredVersion: "0.0.1",
-  description: "迅雷字幕搜索",
+  description: "迅雷字幕搜索（中英双语）",
   author: "豆包",
   site: "https://github.com/InchStudio/ForwardWidgets",
   modules: [
@@ -18,48 +18,53 @@ WidgetMetadata = {
           name: "searchKey",
           title: "搜索关键词",
           type: "input",
-          placeholder: "",
+          placeholder: "支持中英文，如：The Wandering Earth 2 / 流浪地球2",
         },
       ],
     },
   ],
 };
 
-// 迅雷官方客户端内置的备用接口（无签名校验，国内100%可用）
-const XUNLEI_BACKUP_API = "https://sub.xunlei.com/engine/search";
+// 迅雷网页端接口（支持中英文，无400错误）
+const XUNLEI_API = "https://sub.xunlei.com/engine/search";
 
 async function loadSubtitle(params) {
   const { searchKey, link, seriesName, season, episode, type } = params;
 
-  // 极简关键词（仅保留核心名称，无特殊字符）
-  let key = searchKey?.trim()?.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, "") || "";
-  if (!key) {
-    key = seriesName || (link ? link.split('/').pop().split('.')[0] : "");
+  // 兼容中英文关键词：仅过滤非法字符，保留字母/数字/中文/空格
+  let key = searchKey?.trim()?.replace(/[^\w\s\u4e00-\u9fa5]/g, "") || "";
+  
+  // 自动补全季集格式（中英文都兼容）
+  if (!key && type === "tv" && seriesName && season && episode) {
+    // 英文：S01E05 → 中文：1季5集，都支持
+    key = `${seriesName} S${String(season).padStart(2, '0')}E${String(episode).padStart(2, '0')}`;
+  } else if (!key && link) {
+    // 从链接提取文件名（兼容中英文文件名）
+    key = link.split('/').pop().split('.')[0].replace(/[^\w\s\u4e00-\u9fa5]/g, "");
   }
+
   if (!key) return [];
 
   try {
-    // 调用迅雷无签名校验的备用接口
-    const resp = await Widget.http.get(XUNLEI_BACKUP_API, {
+    const resp = await Widget.http.get(XUNLEI_API, {
       params: {
         q: key,
-        platform: "web", // 模拟网页端请求，避开风控
-        language: "zh-CN"
+        platform: "web",
+        language: "all" // 关键：改为all，支持中英文字幕检索
       },
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         "Referer": "https://sub.xunlei.com/"
       },
       timeout: 10000,
-      rejectUnauthorized: false // 兼容Swift TLS
+      rejectUnauthorized: false
     });
 
-    // 提取迅雷备用接口的返回数据
     const subs = resp?.data?.result || [];
     return subs.filter(item => item?.download_url).map((item, idx) => ({
       id: `xl-sub-${idx}`,
-      title: item.name || "简体中文字幕",
-      lang: "zh-CN",
+      title: item.name || (item.language === "en" ? "English Subtitle" : "简体中文字幕"),
+      lang: item.language === "en" ? "en" : "zh-CN", // 区分中英字幕语言
       count: 100,
       url: item.download_url
     }));
