@@ -1,10 +1,10 @@
 WidgetMetadata = {
-  id: "forward.meta.xunlei.subtitle",
-  title: "迅雷影音字幕",
+  id: "forward.meta.subtitlecat",
+  title: "SubtitleCat 字幕",
   icon: "https://assets.vvebo.vip/scripts/icon.png",
-  version: "1.3.0",
+  version: "1.0.0",
   requiredVersion: "0.0.1",
-  description: "基于迅雷影音协议的字幕搜索",
+  description: "从 subtitlecat.com 搜索中文字幕",
   author: "豆包",
   site: "https://github.com/InchStudio/ForwardWidgets",
   modules: [
@@ -25,17 +25,22 @@ WidgetMetadata = {
   ],
 };
 
-// 迅雷影音专用接口配置
-const XUNLEI_CONFIG = {
-  // 使用 https 避免网络中断，如果 https 不通，插件底层会自动降级或报错
-  url: "https://sub.xmp.sandai.net/subhub/search/top",
+// subtitlecat 配置
+const SUBTITLECAT_CONFIG = {
+  baseUrl: "https://www.subtitlecat.com",
+  searchPath: "/index.php",
   headers: {
-    "User-Agent": "ThunderVVDestop", // 模拟迅雷影音 PC 客户端 UA
-    "Accept": "*/*",
-    "Connection": "keep-alive"
-  }
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8"
+  },
+  timeout: 15000,
+  maxResults: 10
 };
 
+/**
+ * 主函数：搜索并返回字幕列表
+ */
 async function loadSubtitle(params) {
   const { searchKey, seriesName, type } = params;
 
@@ -43,55 +48,125 @@ async function loadSubtitle(params) {
   let key = searchKey?.trim() || seriesName || "";
   if (!key) return [];
 
-  // 2. 清理关键词（迅雷影音接口不喜欢特殊符号）
+  // 2. 清理关键词（保留字母数字中文空格）
   key = key.replace(/[^\w\s\u4e00-\u9fa5]/g, " ").trim();
 
   try {
-    // 3. 构建 GET 请求（迅雷影音接口不支持 POST）
-    const targetUrl = `${XUNLEI_CONFIG.url}?keyword=${encodeURIComponent(key)}`;
-
-    const resp = await Widget.http.get(targetUrl, {
-      headers: XUNLEI_CONFIG.headers,
-      timeout: 10000,
-      rejectUnauthorized: false, // 核心：忽略证书校验，防止“网络中断”
+    // 3. 搜索请求
+    const searchUrl = `${SUBTITLECAT_CONFIG.baseUrl}${SUBTITLECAT_CONFIG.searchPath}?search=${encodeURIComponent(key)}`;
+    const resp = await Widget.http.get(searchUrl, {
+      headers: SUBTITLECAT_CONFIG.headers,
+      timeout: SUBTITLECAT_CONFIG.timeout,
+      rejectUnauthorized: false,
       followRedirects: true
     });
 
-    // 4. 解析数据（处理可能的字符串返回）
-    let result = resp?.data;
-    if (typeof result === 'string') {
-      try {
-        result = JSON.parse(result);
-      } catch (e) {
-        // 如果解析失败，尝试匹配 JSON 结构（防止返回非标准格式）
-        const match = result.match(/\{.*\}/);
-        if (match) result = JSON.parse(match[0]);
+    const html = resp?.data || "";
+    // 4. 解析搜索结果，获取字幕详情页 URL 列表
+    const detailPages = parseSearchResult(html);
+
+    // 5. 并发获取每个详情页的真实字幕下载链接（限制数量）
+    const subtitles = [];
+    const fetchPromises = detailPages.slice(0, SUBTITLECAT_CONFIG.maxResults).map(async (item, idx) => {
+      const downloadUrl = await fetchSubtitleDownloadUrl(item.detailUrl);
+      if (downloadUrl) {
+        return {
+          id: `subcat-${item.id || idx}`,
+          title: item.title,
+          lang: "zh-CN",
+          count: 100,
+          url: downloadUrl
+        };
       }
+      return null;
+    });
+
+    const results = await Promise.all(fetchPromises);
+    for (const sub of results) {
+      if (sub) subtitles.push(sub);
     }
 
-    // 5. 迅雷影音返回的列表字段固定为 sublist
-    const list = result?.sublist || result?.data || [];
-
-    // 6. 转换为插件标准格式
-    return list.map((item, idx) => {
-      // 兼容 surl 或 url 字段
-      const rawUrl = item.surl || item.url || "";
-      return {
-        id: `xmp-${item.svid || idx}`,
-        title: item.sname || item.name || "迅雷影音资源",
-        lang: "zh-CN",
-        count: 100,
-        url: rawUrl.trim()
-      };
-    }).filter(item => item.url.startsWith('http'));
+    return subtitles;
 
   } catch (e) {
-    console.error("迅雷影音接口请求失败:", e.message);
-    // 如果 https 报错中断，尝试最后一次 http 降级请求
-    if (XUNLEI_CONFIG.url.startsWith('https')) {
-       XUNLEI_CONFIG.url = XUNLEI_CONFIG.url.replace('https', 'http');
-       return loadSubtitle(params);
-    }
+    console.error("subtitlecat 请求失败:", e.message);
     return [];
+  }
+}
+
+/**
+ * 解析搜索结果 HTML，提取每一个字幕的标题和详情页链接
+ */
+function parseSearchResult(html) {
+  const results = [];
+  // 匹配类似: <a href="/subs/12345/Some_Movie.html">Some Movie (2023)</a>
+  const regex = /<a\s+href="([^"]+subs\/\d+\/[^"]+\.html)"[^>]*>([^<]+)<\/a>/gi;
+  let match;
+  while ((match = regex.exec(html)) !== null) {
+    const detailUrl = match[1];
+    const title = match[2].trim();
+    if (title && detailUrl) {
+      // 提取数字 ID（用于标识）
+      const idMatch = detailUrl.match(/subs\/(\d+)\//);
+      const id = idMatch ? idMatch[1] : "";
+      results.push({
+        detailUrl: detailUrl.startsWith("http") ? detailUrl : SUBTITLECAT_CONFIG.baseUrl + detailUrl,
+        title: title,
+        id: id
+      });
+    }
+  }
+  return results;
+}
+
+/**
+ * 从字幕详情页 HTML 中提取实际字幕文件的下载链接
+ * 支持常见模式：直接 .srt/.ass 链接；或 download?id=xxx 重定向；或嵌入的下载按钮 href
+ */
+async function fetchSubtitleDownloadUrl(detailPageUrl) {
+  try {
+    const resp = await Widget.http.get(detailPageUrl, {
+      headers: SUBTITLECAT_CONFIG.headers,
+      timeout: 8000,
+      rejectUnauthorized: false
+    });
+    const html = resp?.data || "";
+    
+    // 模式1：直接匹配 .srt 或 .ass 文件的链接
+    let match = html.match(/href="([^"]+\.(?:srt|ass))"/i);
+    if (match && match[1]) {
+      let url = match[1];
+      if (url.startsWith("//")) url = "https:" + url;
+      else if (url.startsWith("/")) url = SUBTITLECAT_CONFIG.baseUrl + url;
+      return url;
+    }
+    
+    // 模式2：匹配下载按钮，可能是 ?download=1 或 &act=down
+    match = html.match(/href="([^"]*download[^"]*\.html?)"/i);
+    if (match && match[1]) {
+      let url = match[1];
+      if (url.startsWith("/")) url = SUBTITLECAT_CONFIG.baseUrl + url;
+      // 尝试直接访问这个下载页，可能会返回文件或再次跳转
+      // 为了简化，再次请求并跟进重定向
+      const dlResp = await Widget.http.get(url, {
+        headers: SUBTITLECAT_CONFIG.headers,
+        followRedirects: true,
+        timeout: 8000
+      });
+      // 如果最终响应是文本内容且以字幕格式开头，则视为字幕内容
+      const finalUrl = dlResp?.finalUrl || url;
+      if (finalUrl.match(/\.(srt|ass)$/i)) return finalUrl;
+      // 否则尝试从返回的 HTML 中再次提取
+      if (dlResp?.data) {
+        const innerMatch = dlResp.data.match(/href="([^"]+\.(?:srt|ass))"/i);
+        if (innerMatch) return innerMatch[1];
+      }
+    }
+    
+    // 模式3：某些字幕站把字幕内容直接嵌入页面中，需要提取并构造临时 blob（不考虑，太复杂）
+    return null;
+  } catch (e) {
+    console.error("获取字幕下载链接失败:", detailPageUrl, e.message);
+    return null;
   }
 }
